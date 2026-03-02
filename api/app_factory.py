@@ -20,12 +20,16 @@ from api.routes.auth import auth_router, init_auth
 from api.routes.graphs import graphs_router
 from api.routes.database import database_router
 from api.routes.tokens import tokens_router
+from api.config import validate_oauth_config
 
 # Load environment variables from .env file
 load_dotenv()
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+# 验证 OAuth 配置
+validate_oauth_config()
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):  # pylint: disable=too-few-public-methods

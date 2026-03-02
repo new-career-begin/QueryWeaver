@@ -52,11 +52,18 @@ docker run -p 5000:5000 -it \
   -e GOOGLE_CLIENT_SECRET=your_google_client_secret \
   -e GITHUB_CLIENT_ID=your_github_client_id \
   -e GITHUB_CLIENT_SECRET=your_github_client_secret \
+  -e WECHAT_APP_ID=your_wechat_app_id \
+  -e WECHAT_APP_SECRET=your_wechat_app_secret \
+  -e WECOM_CORP_ID=your_wecom_corp_id \
+  -e WECOM_AGENT_ID=your_wecom_agent_id \
+  -e WECOM_CORP_SECRET=your_wecom_corp_secret \
   -e AZURE_API_KEY=your_azure_api_key \
   falkordb/queryweaver
 ```
 
 > Note: To use OpenAI directly instead of Azure OpenAI, replace `AZURE_API_KEY` with `OPENAI_API_KEY` in the above command.
+
+> WeChat and WeCom OAuth are optional. Only include their environment variables if you want to enable these login methods.
 
 > For a full list of configuration options, consult `.env.example`.
 
@@ -305,10 +312,69 @@ npm run build
 
 ### OAuth configuration
 
-QueryWeaver supports Google and GitHub OAuth. Create OAuth credentials for each provider and paste the client IDs/secrets into your `.env` file.
+QueryWeaver supports multiple OAuth providers: Google, GitHub, WeChat (微信), and WeCom (企业微信). Create OAuth credentials for each provider you want to enable and paste the client IDs/secrets into your `.env` file.
 
-- Google: set authorized origin and callback `http://localhost:5000/login/google/authorized`
-- GitHub: set homepage and callback `http://localhost:5000/login/github/authorized`
+#### Google OAuth
+- Set authorized origin and callback `http://localhost:5000/login/google/authorized`
+
+#### GitHub OAuth
+- Set homepage and callback `http://localhost:5000/login/github/authorized`
+
+#### WeChat OAuth (微信登录)
+WeChat OAuth enables Chinese users to log in using their WeChat accounts.
+
+**Prerequisites:**
+- Register at [WeChat Open Platform](https://open.weixin.qq.com/)
+- Create a Website Application
+- Configure authorized callback domain
+- Obtain AppID and AppSecret
+- Domain must be ICP-registered (for China deployments)
+
+**Configuration:**
+```bash
+# WeChat OAuth credentials
+WECHAT_APP_ID=wx1234567890abcdef
+WECHAT_APP_SECRET=your_wechat_app_secret
+
+# Optional: custom callback URL (defaults to auto-generated)
+WECHAT_REDIRECT_URI=http://localhost:5000/login/wechat/authorized
+```
+
+**Callback URL:** `http://localhost:5000/login/wechat/authorized`
+
+**Notes:**
+- WeChat OAuth requires HTTPS in production
+- Users without email will get a virtual email: `{openid}@wechat.queryweaver.local`
+- Supports both PC QR code scanning and mobile in-app authorization
+
+#### WeCom OAuth (企业微信登录)
+WeCom (WeChat Work) OAuth is designed for enterprise users within organizations.
+
+**Prerequisites:**
+- Register at [WeCom Admin Console](https://work.weixin.qq.com/)
+- Create a self-built application or third-party application
+- Configure trusted domain
+- Obtain CorpID, AgentID, and CorpSecret
+- Configure application permissions
+
+**Configuration:**
+```bash
+# WeCom OAuth credentials
+WECOM_CORP_ID=ww1234567890abcdef
+WECOM_AGENT_ID=1000001
+WECOM_CORP_SECRET=your_wecom_corp_secret
+
+# Optional: custom callback URL (defaults to auto-generated)
+WECOM_REDIRECT_URI=http://localhost:5000/login/wecom/authorized
+```
+
+**Callback URL:** `http://localhost:5000/login/wecom/authorized`
+
+**Notes:**
+- WeCom OAuth requires HTTPS in production
+- Users can authenticate with their enterprise WeChat account
+- Retrieves user information including department and employee ID
+- Supports both PC QR code scanning and mobile in-app authorization
 
 #### Environment-specific OAuth settings
 
@@ -427,6 +493,12 @@ GitHub Actions run unit and E2E tests on pushes and pull requests. Failures capt
 - Playwright/browser failures: install browsers with `pipenv run playwright install` and ensure system deps are present.
 - Missing environment variables: copy `.env.example` and fill required values.
 - **OAuth "mismatching_state: CSRF Warning!" errors**: Set `APP_ENV=production` (or `staging`) in your environment for HTTPS deployments, or `APP_ENV=development` for HTTP development environments. This ensures session cookies are configured correctly for your deployment type.
+- **WeChat/WeCom OAuth not working**: 
+  - Verify your AppID/CorpID and Secret are correct
+  - Ensure callback URL is configured in WeChat/WeCom admin console
+  - Check that your domain is properly registered (ICP filing required for China)
+  - Use HTTPS in production (WeChat/WeCom require secure connections)
+  - Check logs for specific error codes (see troubleshooting guide below)
 
 ## Project layout (high level)
 

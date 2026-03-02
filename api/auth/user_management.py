@@ -37,10 +37,15 @@ class IdentityInfo(BaseModel):
 async def _get_user_info(api_token: str) -> Optional[Dict[str, Any]]:
     """
     Get user information from the database by email.
+    
+    优化说明：
+    - 使用 Token.id 索引快速查找 Token
+    - 使用 MATCH 模式匹配减少查询复杂度
     """
     query = """
         MATCH (i:Identity)-[:HAS_TOKEN]->(t:Token {id: $api_token})
-        RETURN i.email, i.name, i.picture, (t IS NOT NULL AND timestamp() <= t.expires_at) AS token_valid
+        WHERE timestamp() <= t.expires_at
+        RETURN i.email, i.name, i.picture, true AS token_valid
     """
 
     try:
@@ -56,17 +61,13 @@ async def _get_user_info(api_token: str) -> Optional[Dict[str, Any]]:
 
         if result.result_set:
             single_result = result.result_set[0]
-            token_valid = single_result[3]
-
-            if token_valid:
-                return {
-                    "email": single_result[0],
-                    "name": single_result[1],
-                    "picture": single_result[2],
-                }
-            # Delete invalid/expired token from DB for cleanup
-            await delete_user_token(api_token)
-
+            return {
+                "email": single_result[0],
+                "name": single_result[1],
+                "picture": single_result[2],
+            }
+        
+        # Token 不存在或已过期
         return None
     except Exception as e:  # pylint: disable=broad-exception-caught
         logging.error("Error fetching user info: %s", e)
@@ -149,47 +150,57 @@ async def ensure_user_in_organizations(  # pylint: disable=too-many-arguments, d
 
 
 async def update_identity_last_login(provider, provider_user_id):
-    """Update the last login timestamp for an existing identity"""
-    # Input validation
+    """
+    更新身份的最后登录时间戳
+    
+    优化说明：
+    - 使用 (provider, provider_user_id) 复合索引快速定位 Identity 节点
+    - 简化查询，只更新必要的字段
+    
+    Args:
+        provider: 认证提供商
+        provider_user_id: 提供商用户ID
+    """
+    # 输入验证
     if not provider or not provider_user_id:
         logging.error(
-            "Missing required parameters: provider=%s, provider_user_id=%s",
+            "缺少必需参数: provider=%s, provider_user_id=%s",
             provider,
             provider_user_id,
         )
         return
 
-    # Validate provider is in allowed list
-    allowed_providers = ["google", "github", "email"]
+    # 验证 provider 是否在允许列表中
+    allowed_providers = ["google", "github", "email", "wechat", "wecom"]
     if provider not in allowed_providers:
-        logging.error("Invalid provider: %s", provider)
+        logging.error("无效的认证提供商: %s", provider)
         return
 
     try:
         organizations_graph = db.select_graph("Organizations")
+        # 优化的查询：使用复合索引，不返回不必要的数据
         update_query = """
         MATCH (identity:Identity {provider: $provider, provider_user_id: $provider_user_id})
         SET identity.last_login = timestamp()
-        RETURN identity
         """
         await organizations_graph.query(
             update_query, {"provider": provider, "provider_user_id": provider_user_id}
         )
         logging.info(
-            "Updated last login for identity: provider=%s, provider_user_id=%s",
+            "更新身份最后登录时间: provider=%s, provider_user_id=%s",
             provider,
             provider_user_id,
         )
     except (AttributeError, ValueError, KeyError) as e:
         logging.error(
-            "Error updating last login for identity %s/%s: %s",
+            "更新身份 %s/%s 最后登录时间时出错: %s",
             provider,
             provider_user_id,
             e,
         )
     except Exception as e:  # pylint: disable=broad-exception-caught
         logging.error(
-            "Unexpected error updating last login for identity %s/%s: %s",
+            "更新身份 %s/%s 最后登录时间时发生意外错误: %s",
             provider,
             provider_user_id,
             e,
@@ -325,28 +336,38 @@ def token_optional(func):
 
 
 def _validate_user_input(provider_user_id: str, email: str, provider: str):
-    """Validate input parameters for user creation/update."""
+    """
+    验证用户输入参数
+    
+    Args:
+        provider_user_id: 提供商用户ID
+        email: 用户邮箱
+        provider: 认证提供商
+        
+    Returns:
+        None 如果验证通过，否则返回 (False, None)
+    """
     if not provider_user_id or not email or not provider:
         logging.error(
-            "Missing required parameters: provider_user_id=%s, email=%s, provider=%s",
+            "缺少必需参数: provider_user_id=%s, email=%s, provider=%s",
             provider_user_id,
             email,
             provider,
         )
         return False, None
 
-    # Validate email format (basic check)
+    # 验证邮箱格式（基本检查）
     if "@" not in email or "." not in email:
-        logging.error("Invalid email format: %s", email)
+        logging.error("邮箱格式无效: %s", email)
         return False, None
 
-    # Validate provider is in allowed list
-    allowed_providers = ["google", "github", "api", "email"]
+    # 验证 provider 是否在允许列表中
+    allowed_providers = ["google", "github", "email", "wechat", "wecom"]
     if provider not in allowed_providers:
-        logging.error("Invalid provider: %s", provider)
+        logging.error("无效的认证提供商: %s", provider)
         return False, None
 
-    return None  # No validation errors
+    return None  # 验证通过
 
 
 def _extract_name_parts(name: str) -> tuple:

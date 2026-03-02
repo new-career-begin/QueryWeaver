@@ -146,3 +146,122 @@ class Config:
     * **User Query (Natural Language):**
     You will be given a user's current question or request in natural language.
     """
+
+
+# -----------------------------
+# 微信 OAuth 配置
+# -----------------------------
+WECHAT_CONFIG = {
+    "app_id": os.getenv("WECHAT_APP_ID"),
+    "app_secret": os.getenv("WECHAT_APP_SECRET"),
+    "authorize_url": "https://open.weixin.qq.com/connect/oauth2/authorize",
+    "access_token_url": "https://api.weixin.qq.com/sns/oauth2/access_token",
+    "userinfo_url": "https://api.weixin.qq.com/sns/userinfo",
+    "scope": "snsapi_userinfo",
+    "response_type": "code"
+}
+
+
+# -----------------------------
+# 企业微信 OAuth 配置
+# -----------------------------
+WECOM_CONFIG = {
+    "corp_id": os.getenv("WECOM_CORP_ID"),
+    "agent_id": os.getenv("WECOM_AGENT_ID"),
+    "corp_secret": os.getenv("WECOM_CORP_SECRET"),
+    "authorize_url": "https://open.weixin.qq.com/connect/oauth2/authorize",
+    "access_token_url": "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
+    "userinfo_url": "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo",
+    "user_detail_url": "https://qyapi.weixin.qq.com/cgi-bin/user/get",
+    "scope": "snsapi_base"
+}
+
+
+# -----------------------------
+# OAuth 配置检查函数
+# -----------------------------
+def _is_wechat_auth_enabled() -> bool:
+    """
+    检查微信登录是否启用
+    
+    Returns:
+        bool: 如果配置了 WECHAT_APP_ID 和 WECHAT_APP_SECRET 则返回 True
+    """
+    return bool(WECHAT_CONFIG.get("app_id") and WECHAT_CONFIG.get("app_secret"))
+
+
+def _is_wecom_auth_enabled() -> bool:
+    """
+    检查企业微信登录是否启用
+    
+    Returns:
+        bool: 如果配置了 WECOM_CORP_ID、WECOM_CORP_SECRET 和 WECOM_AGENT_ID 则返回 True
+    """
+    return bool(
+        WECOM_CONFIG.get("corp_id")
+        and WECOM_CONFIG.get("corp_secret")
+        and WECOM_CONFIG.get("agent_id")
+    )
+
+
+def validate_wechat_config() -> None:
+    """
+    验证微信配置的完整性
+    
+    Raises:
+        ValueError: 当配置不完整时抛出
+    """
+    if not WECHAT_CONFIG.get("app_id"):
+        raise ValueError("缺少 WECHAT_APP_ID 环境变量")
+    if not WECHAT_CONFIG.get("app_secret"):
+        raise ValueError("缺少 WECHAT_APP_SECRET 环境变量")
+    
+    logging.info("微信 OAuth 配置验证通过")
+
+
+def validate_wecom_config() -> None:
+    """
+    验证企业微信配置的完整性
+    
+    Raises:
+        ValueError: 当配置不完整时抛出
+    """
+    if not WECOM_CONFIG.get("corp_id"):
+        raise ValueError("缺少 WECOM_CORP_ID 环境变量")
+    if not WECOM_CONFIG.get("corp_secret"):
+        raise ValueError("缺少 WECOM_CORP_SECRET 环境变量")
+    if not WECOM_CONFIG.get("agent_id"):
+        raise ValueError("缺少 WECOM_AGENT_ID 环境变量")
+    
+    logging.info("企业微信 OAuth 配置验证通过")
+
+
+def validate_oauth_config() -> None:
+    """
+    验证所有 OAuth 配置
+    
+    此函数会检查所有已配置的 OAuth 提供商，并记录启用状态。
+    如果某个提供商配置不完整，会记录警告但不会抛出异常。
+    """
+    oauth_providers = []
+    
+    # 检查微信配置
+    if _is_wechat_auth_enabled():
+        try:
+            validate_wechat_config()
+            oauth_providers.append("微信")
+        except ValueError as e:
+            logging.warning(f"微信配置不完整: {str(e)}")
+    
+    # 检查企业微信配置
+    if _is_wecom_auth_enabled():
+        try:
+            validate_wecom_config()
+            oauth_providers.append("企业微信")
+        except ValueError as e:
+            logging.warning(f"企业微信配置不完整: {str(e)}")
+    
+    if oauth_providers:
+        logging.info(f"已启用的 OAuth 提供商: {', '.join(oauth_providers)}")
+    else:
+        logging.info("未配置微信或企业微信 OAuth 登录")

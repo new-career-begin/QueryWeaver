@@ -18,6 +18,8 @@ export const API_CONFIG = {
     AUTH_STATUS: '/auth-status',
     LOGIN_GOOGLE: '/login/google',
     LOGIN_GITHUB: '/login/github',
+    LOGIN_WECHAT: '/login/wechat',
+    LOGIN_WECOM: '/login/wecom',
     LOGOUT: '/logout',
     
     // Graph/Database management

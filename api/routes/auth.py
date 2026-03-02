@@ -10,6 +10,7 @@ import secrets
 
 from pathlib import Path
 from urllib.parse import urljoin
+from itsdangerous import URLSafeTimedSerializer
 
 from authlib.integrations.starlette_client import OAuth
 
@@ -21,7 +22,9 @@ from starlette.config import Config
 from pydantic import BaseModel
 
 from api.auth.user_management import delete_user_token, ensure_user_in_organizations, validate_user
+from api.auth.oauth_handlers import WeChatOAuthHandler, WeComOAuthHandler
 from api.extensions import db
+from api.config import WECHAT_CONFIG, WECOM_CONFIG, _is_wechat_auth_enabled, _is_wecom_auth_enabled
 
 # Import GENERAL_PREFIX from graphs route
 GENERAL_PREFIX = os.getenv("GENERAL_PREFIX")
@@ -50,6 +53,87 @@ templates.env.globals["google_tag_manager_id"] = os.getenv("GOOGLE_TAG_MANAGER_I
 GOOGLE_AUTH = bool(os.getenv("GOOGLE_CLIENT_ID") and os.getenv("GOOGLE_CLIENT_SECRET"))
 GITHUB_AUTH = bool(os.getenv("GITHUB_CLIENT_ID") and os.getenv("GITHUB_CLIENT_SECRET"))
 EMAIL_AUTH = bool(os.getenv("EMAIL_AUTH_ENABLED", "").lower() in ["true", "1", "yes", "on"])
+
+# 初始化序列化器（用于 state 参数）
+serializer = URLSafeTimedSerializer(os.getenv("FASTAPI_SECRET_KEY", "default-secret-key"))
+
+
+# ---- CSRF 防护函数 ----
+def generate_state(provider: str) -> str:
+    """
+    生成 OAuth state 参数用于 CSRF 防护
+    
+    Args:
+        provider: OAuth 提供商名称（如 "wechat", "wecom", "google", "github"）
+        
+    Returns:
+        加密签名的 state 字符串
+        
+    Example:
+        >>> state = generate_state("wechat")
+        >>> print(state)
+        'eyJwcm92aWRlciI6IndlY2hhdCIsIm5vbmNlIjoiLi4uIn0...'
+    """
+    # 生成随机 nonce 增加安全性
+    nonce = secrets.token_urlsafe(16)
+    
+    # 创建 state 数据
+    state_data = {
+        "provider": provider,
+        "nonce": nonce
+    }
+    
+    # 使用 itsdangerous 序列化和签名
+    state = serializer.dumps(state_data)
+    
+    logging.info("生成 CSRF state: provider=%s", provider)
+    return state
+
+
+def verify_state(state: str, expected_provider: str, max_age: int = 600) -> bool:
+    """
+    验证 OAuth state 参数
+    
+    Args:
+        state: 待验证的 state 字符串
+        expected_provider: 期望的提供商名称
+        max_age: state 的最大有效期（秒），默认 10 分钟
+        
+    Returns:
+        验证成功返回 True，失败返回 False
+        
+    Raises:
+        ValueError: 当 state 格式不正确或已过期时抛出
+        
+    Example:
+        >>> state = generate_state("wechat")
+        >>> verify_state(state, "wechat")
+        True
+    """
+    try:
+        # 验证签名和时效性
+        state_data = serializer.loads(state, max_age=max_age)
+        
+        # 验证提供商匹配
+        if state_data.get("provider") != expected_provider:
+            logging.error(
+                "State provider 不匹配: expected=%s, actual=%s",
+                expected_provider,
+                state_data.get("provider")
+            )
+            return False
+        
+        # 验证必需字段存在
+        if not state_data.get("nonce"):
+            logging.error("State 缺少 nonce 字段")
+            return False
+        
+        logging.info("State 验证成功: provider=%s", expected_provider)
+        return True
+        
+    except Exception as e:
+        logging.error("State 验证失败: %s", str(e))
+        raise ValueError(f"State 验证失败: {str(e)}") from e
 
 # ---- Authentication Configuration Helpers ----
 def _is_email_auth_enabled() -> bool:
@@ -276,8 +360,10 @@ async def email_signup(request: Request, signup_data: EmailSignupRequest) -> JSO
         response.set_cookie(
             key="api_token",
             value=api_token,
+            max_age=86400,  # 24 小时过期
             httponly=True,
-            secure=_is_request_secure(request)
+            secure=_is_request_secure(request),
+            samesite="lax"
         )
         return response
 
@@ -354,8 +440,10 @@ async def email_login(request: Request, login_data: EmailLoginRequest) -> JSONRe
                 response.set_cookie(
                     key="api_token",
                     value=api_token,
+                    max_age=86400,  # 24 小时过期
                     httponly=True,
-                    secure=_is_request_secure(request)
+                    secure=_is_request_secure(request),
+                    samesite="lax"
                 )
                 return response
             
@@ -503,8 +591,10 @@ async def google_authorized(request: Request) -> RedirectResponse:
                 redirect.set_cookie(
                     key="api_token",
                     value=api_token,
+                    max_age=86400,  # 24 小时过期
                     httponly=True,
-                    secure=True
+                    secure=True,
+                    samesite="lax"
                 )
 
                 return redirect
@@ -607,8 +697,10 @@ async def github_authorized(request: Request) -> RedirectResponse:
                 redirect.set_cookie(
                     key="api_token",
                     value=api_token,
+                    max_age=86400,  # 24 小时过期
                     httponly=True,
-                    secure=True
+                    secure=True,
+                    samesite="lax"
                 )
 
                 return redirect
@@ -634,12 +726,371 @@ async def github_callback_compat(request: Request) -> RedirectResponse:
     return RedirectResponse(url=redirect, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
+# ---- 微信 OAuth 路由 ----
+@auth_router.get("/login/wechat", name="wechat.login", response_class=RedirectResponse)
+async def login_wechat(request: Request) -> RedirectResponse:
+    """
+    微信登录入口
+    
+    生成 CSRF token (state) 并重定向到微信授权页面
+    
+    Args:
+        request: FastAPI 请求对象
+        
+    Returns:
+        重定向响应到微信授权页面
+        
+    Raises:
+        HTTPException: 当微信登录未配置时抛出 503
+    """
+    # 检查微信登录是否启用
+    if not _is_wechat_auth_enabled():
+        logging.warning("微信登录未配置")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="微信登录功能未启用，请联系管理员配置"
+        )
+    
+    # 生成 CSRF token
+    state = generate_state("wechat")
+    
+    # 构建回调 URL
+    redirect_uri = _build_callback_url(request, "login/wechat/authorized")
+    
+    # 初始化微信 OAuth 处理器
+    wechat_handler = WeChatOAuthHandler(WECHAT_CONFIG)
+    
+    # 构建授权 URL
+    authorize_url = wechat_handler.build_authorize_url(redirect_uri, state)
+    
+    # 将 state 存储到 cookie（用于后续验证）
+    response = RedirectResponse(url=authorize_url, status_code=302)
+    response.set_cookie(
+        key="oauth_state",
+        value=state,
+        max_age=600,  # 10 分钟有效期
+        httponly=True,
+        secure=_is_request_secure(request),
+        samesite="lax"
+    )
+    
+    logging.info("用户发起微信登录")
+    return response
+
+
+@auth_router.get("/login/wechat/authorized", response_class=RedirectResponse)
+async def wechat_authorized(request: Request) -> RedirectResponse:
+    """
+    微信 OAuth 回调端点
+    
+    处理微信授权回调，验证 state，获取用户信息，创建/更新用户
+    
+    Args:
+        request: FastAPI 请求对象
+        
+    Returns:
+        重定向响应到首页或错误页面
+        
+    Raises:
+        HTTPException: 当授权失败时抛出
+    """
+    # 检查微信登录是否启用
+    if not _is_wechat_auth_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="微信登录功能未启用"
+        )
+    
+    # 获取查询参数
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    
+    # 验证必需参数
+    if not code or not state:
+        logging.error("微信回调缺少必需参数")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：缺少必需参数"
+        )
+    
+    # 验证 state（CSRF 防护）
+    stored_state = request.cookies.get("oauth_state")
+    if not stored_state or stored_state != state:
+        logging.error("State 验证失败: stored=%s, received=%s", stored_state, state)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：安全验证失败，请重试"
+        )
+    
+    try:
+        # 验证 state 签名和时效性（10 分钟）
+        if not verify_state(state, "wechat", max_age=600):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="授权失败：安全验证失败，请重试"
+            )
+    except ValueError as e:
+        logging.error("State 验证失败: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：验证令牌已过期，请重新登录"
+        ) from e
+    
+    # 初始化微信 OAuth 处理器
+    wechat_handler = WeChatOAuthHandler(WECHAT_CONFIG)
+    
+    try:
+        # 使用 code 换取 access_token
+        token_data = await wechat_handler.exchange_code_for_token(code)
+        access_token = token_data["access_token"]
+        openid = token_data["openid"]
+        
+        # 获取用户信息
+        user_data = await wechat_handler.get_user_info(access_token, openid)
+        
+        # 解析为标准格式
+        user_info = wechat_handler.parse_user_info(user_data)
+        
+        # 生成 API Token
+        api_token = secrets.token_urlsafe(32)
+        
+        # 调用统一的回调处理器
+        handler = getattr(request.app.state, "callback_handler", None)
+        if handler:
+            success = await handler("wechat", user_info, api_token)
+            
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="用户信息处理失败"
+                )
+            
+            # 设置认证 Cookie
+            response = RedirectResponse(url="/", status_code=302)
+            response.set_cookie(
+                key="api_token",
+                value=api_token,
+                max_age=86400,  # 24 小时过期
+                httponly=True,
+                secure=_is_request_secure(request),
+                samesite="lax"
+            )
+            
+            # 清除 oauth_state cookie
+            response.delete_cookie("oauth_state")
+            
+            logging.info("微信登录成功: openid=%s", openid)
+            return response
+        
+        # Handler 未设置
+        logging.error("微信 OAuth 回调处理器未注册")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="认证处理器未配置"
+        )
+        
+    except ValueError as e:
+        # 微信 API 错误
+        logging.error("微信 OAuth 处理失败: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"登录失败: {str(e)}"
+        ) from e
+    except Exception as e:
+        # 其他未预期错误
+        logging.exception("微信登录处理异常: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="登录失败，请稍后重试"
+        ) from e
+
+
+# ---- 企业微信 OAuth 路由 ----
+@auth_router.get("/login/wecom", name="wecom.login", response_class=RedirectResponse)
+async def login_wecom(request: Request) -> RedirectResponse:
+    """
+    企业微信登录入口
+    
+    生成 CSRF token (state) 并重定向到企业微信授权页面
+    
+    Args:
+        request: FastAPI 请求对象
+        
+    Returns:
+        重定向响应到企业微信授权页面
+        
+    Raises:
+        HTTPException: 当企业微信登录未配置时抛出 503
+    """
+    # 检查企业微信登录是否启用
+    if not _is_wecom_auth_enabled():
+        logging.warning("企业微信登录未配置")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="企业微信登录功能未启用，请联系管理员配置"
+        )
+    
+    # 生成 CSRF token
+    state = generate_state("wecom")
+    
+    # 构建回调 URL
+    redirect_uri = _build_callback_url(request, "login/wecom/authorized")
+    
+    # 初始化企业微信 OAuth 处理器
+    wecom_handler = WeComOAuthHandler(WECOM_CONFIG)
+    
+    # 构建授权 URL
+    authorize_url = wecom_handler.build_authorize_url(redirect_uri, state)
+    
+    # 将 state 存储到 cookie
+    response = RedirectResponse(url=authorize_url, status_code=302)
+    response.set_cookie(
+        key="oauth_state",
+        value=state,
+        max_age=600,  # 10 分钟有效期
+        httponly=True,
+        secure=_is_request_secure(request),
+        samesite="lax"
+    )
+    
+    logging.info("用户发起企业微信登录")
+    return response
+
+
+@auth_router.get("/login/wecom/authorized", response_class=RedirectResponse)
+async def wecom_authorized(request: Request) -> RedirectResponse:
+    """
+    企业微信 OAuth 回调端点
+    
+    处理企业微信授权回调，验证 state，获取用户信息，创建/更新用户
+    
+    Args:
+        request: FastAPI 请求对象
+        
+    Returns:
+        重定向响应到首页或错误页面
+        
+    Raises:
+        HTTPException: 当授权失败时抛出
+    """
+    # 检查企业微信登录是否启用
+    if not _is_wecom_auth_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="企业微信登录功能未启用"
+        )
+    
+    # 获取查询参数
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    
+    # 验证必需参数
+    if not code or not state:
+        logging.error("企业微信回调缺少必需参数")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：缺少必需参数"
+        )
+    
+    # 验证 state（CSRF 防护）
+    stored_state = request.cookies.get("oauth_state")
+    if not stored_state or stored_state != state:
+        logging.error("State 验证失败: stored=%s, received=%s", stored_state, state)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：安全验证失败，请重试"
+        )
+    
+    try:
+        # 验证 state 签名和时效性
+        if not verify_state(state, "wecom", max_age=600):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="授权失败：安全验证失败，请重试"
+            )
+    except ValueError as e:
+        logging.error("State 验证失败: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="授权失败：验证令牌已过期，请重新登录"
+        ) from e
+    
+    # 初始化企业微信 OAuth 处理器
+    wecom_handler = WeComOAuthHandler(WECOM_CONFIG)
+    
+    try:
+        # 使用 code 获取用户信息
+        user_data = await wecom_handler.get_user_info(code)
+        
+        # 解析为标准格式
+        user_info = wecom_handler.parse_user_info(user_data)
+        
+        # 生成 API Token
+        api_token = secrets.token_urlsafe(32)
+        
+        # 调用统一的回调处理器
+        handler = getattr(request.app.state, "callback_handler", None)
+        if handler:
+            success = await handler("wecom", user_info, api_token)
+            
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="用户信息处理失败"
+                )
+            
+            # 设置认证 Cookie
+            response = RedirectResponse(url="/", status_code=302)
+            response.set_cookie(
+                key="api_token",
+                value=api_token,
+                max_age=86400,  # 24 小时过期
+                httponly=True,
+                secure=_is_request_secure(request),
+                samesite="lax"
+            )
+            
+            # 清除 oauth_state cookie
+            response.delete_cookie("oauth_state")
+            
+            logging.info("企业微信登录成功: userid=%s", user_info['id'])
+            return response
+        
+        # Handler 未设置
+        logging.error("企业微信 OAuth 回调处理器未注册")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="认证处理器未配置"
+        )
+        
+    except ValueError as e:
+        # 企业微信 API 错误
+        logging.error("企业微信 OAuth 处理失败: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"登录失败: {str(e)}"
+        ) from e
+    except Exception as e:
+        # 其他未预期错误
+        logging.exception("企业微信登录处理异常: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="登录失败，请稍后重试"
+        ) from e
+
+
 @auth_router.get("/auth-status")
 async def auth_status(request: Request) -> JSONResponse:
-    """Check authentication status for the React app.
+    """
+    检查认证状态
+    
+    返回用户认证状态和可用的登录方式
+    
+    Args:
+        request: FastAPI 请求对象
     
     Returns:
-        JSONResponse: Authentication status with user info if authenticated
+        JSONResponse: 认证状态和用户信息
     """
     user_info, is_authenticated = await validate_user(request)
     
@@ -653,14 +1104,29 @@ async def auth_status(request: Request) -> JSONResponse:
                     "name": user_info.get("name"),
                     "picture": user_info.get("picture"),
                     "provider": user_info.get("provider")
+                },
+                "auth_methods": {
+                    "google": _is_google_auth_enabled(),
+                    "github": _is_github_auth_enabled(),
+                    "wechat": _is_wechat_auth_enabled(),
+                    "wecom": _is_wecom_auth_enabled(),
+                    "email": _is_email_auth_enabled()
                 }
             }
         )
     
-    # Not authenticated - return 200 with authenticated: false
-    # This is NOT an error - unauthenticated users can still use the app
+    # 未认证 - 返回 200 和可用的登录方式
     return JSONResponse(
-        content={"authenticated": False},
+        content={
+            "authenticated": False,
+            "auth_methods": {
+                "google": _is_google_auth_enabled(),
+                "github": _is_github_auth_enabled(),
+                "wechat": _is_wechat_auth_enabled(),
+                "wecom": _is_wecom_auth_enabled(),
+                "email": _is_email_auth_enabled()
+            }
+        },
         status_code=200
     )
 
@@ -726,5 +1192,38 @@ def init_auth(app):
         logging.info("GitHub OAuth initialized successfully")
     else:
         logging.info("GitHub OAuth not configured - skipping registration")
+
+    # 注册微信 OAuth 客户端（如果配置可用）
+    if _is_wechat_auth_enabled():
+        oauth.register(
+            name="wechat",
+            client_id=WECHAT_CONFIG["app_id"],
+            client_secret=WECHAT_CONFIG["app_secret"],
+            authorize_url=WECHAT_CONFIG["authorize_url"],
+            access_token_url=WECHAT_CONFIG["access_token_url"],
+            api_base_url=WECHAT_CONFIG["userinfo_url"],
+            client_kwargs={"scope": WECHAT_CONFIG["scope"]},
+        )
+        logging.info("微信 OAuth 初始化成功")
+    else:
+        logging.info("微信 OAuth 未配置 - 跳过注册")
+
+    # 注册企业微信 OAuth 客户端（如果配置可用）
+    if _is_wecom_auth_enabled():
+        oauth.register(
+            name="wecom",
+            client_id=WECOM_CONFIG["corp_id"],
+            client_secret=WECOM_CONFIG["corp_secret"],
+            authorize_url=WECOM_CONFIG["authorize_url"],
+            access_token_url=WECOM_CONFIG["access_token_url"],
+            api_base_url=WECOM_CONFIG["userinfo_url"],
+            client_kwargs={
+                "scope": WECOM_CONFIG["scope"],
+                "agentid": WECOM_CONFIG["agent_id"]
+            },
+        )
+        logging.info("企业微信 OAuth 初始化成功")
+    else:
+        logging.info("企业微信 OAuth 未配置 - 跳过注册")
 
     app.state.oauth = oauth
