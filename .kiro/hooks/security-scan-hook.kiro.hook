@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "提交前安全扫描",
+  "description": "在代码提交前自动扫描文件，检测潜在的安全泄露问题，如硬编码密码、API密钥、敏感信息等",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.vue",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "请扫描即将写入的文件内容，检查是否包含以下安全风险：\n1. 硬编码的密码、API密钥、访问令牌\n2. 数据库连接字符串中的明文密码\n3. 私钥、证书等敏感凭据\n4. 个人身份信息（PII）如身份证号、手机号等\n5. 内部IP地址、服务器地址等基础设施信息\n6. 其他可能的敏感信息泄露\n\n如果发现安全问题，请详细说明问题所在并建议修复方案。如果没有发现问题，请确认文件安全可以写入。"
+  },
+  "workspaceFolderName": "QueryWeaver-main",
+  "shortName": "security-scan-hook"
+}

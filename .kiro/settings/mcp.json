@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "pencil": {
+      "command": "c:\\Users\\xiaopeng\\.kiro\\extensions\\highagency.pencildev-0.6.28-universal\\out\\mcp-server-windows-x64.exe",
+      "args": [
+        "--app",
+        "kiro"
+      ],
+      "env": {},
+      "autoApprove": [
+        "get_style_guide",
+        "get_guidelines",
+        "batch_design",
+        "get_screenshot",
+        "get_editor_state"
+      ]
+    }
+  }
+}
