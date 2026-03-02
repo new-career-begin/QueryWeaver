@@ -1,5 +1,6 @@
 ---
 inclusion: auto
+description: "QueryWeaver 技术栈详解，包含后端（FastAPI、LiteLLM、FalkorDB）、前端（React、TypeScript、Tailwind CSS）、数据库、开发工具等完整技术选型说明"
 ---
 
 # QueryWeaver 技术栈详解
