@@ -13,6 +13,8 @@ from api.core.errors import InvalidArgumentError
 from api.loaders.base_loader import BaseLoader
 from api.loaders.postgres_loader import PostgresLoader
 from api.loaders.mysql_loader import MySQLLoader
+from api.loaders.dm_loader import DM_Loader
+from api.loaders.kingbase_loader import Kingbase_Loader
 
 # Use the same delimiter as in the JavaScript frontend for streaming chunks
 MESSAGE_DELIMITER = "|||FALKORDB_MESSAGE_BOUNDARY|||"
@@ -35,17 +37,45 @@ def _step_start(steps_counter: int) -> dict[str, str]:
     }
 
 def _step_detect_db_type(steps_counter: int, url: str) -> tuple[type[BaseLoader], dict[str, str]]:
-    """Yield the database type detection step message."""
+    """
+    检测数据库类型并选择对应的加载器
+    
+    Args:
+        steps_counter: 步骤计数器
+        url: 数据库连接 URL
+        
+    Returns:
+        tuple[type[BaseLoader], dict[str, str]]: (加载器类, 进度消息)
+        
+    支持的 URL 前缀:
+        - postgres:// 或 postgresql:// → PostgresLoader
+        - mysql:// → MySQLLoader
+        - dm:// → DM_Loader
+        - kingbase:// → Kingbase_Loader
+        
+    Raises:
+        InvalidArgumentError: 不支持的数据库类型
+    """
     db_type = None
     loader: type[BaseLoader] = BaseLoader  # type: ignore
+    
     if url.startswith("postgres://") or url.startswith("postgresql://"):
         db_type = "postgresql"
         loader = PostgresLoader
     elif url.startswith("mysql://"):
         db_type = "mysql"
         loader = MySQLLoader
+    elif url.startswith("dm://"):
+        db_type = "dm"
+        loader = DM_Loader
+    elif url.startswith("kingbase://"):
+        db_type = "kingbase"
+        loader = Kingbase_Loader
     else:
-        raise InvalidArgumentError("Invalid database URL format")
+        raise InvalidArgumentError(
+            "不支持的数据库 URL 格式。支持的格式: "
+            "postgresql://, mysql://, dm://, kingbase://"
+        )
 
     return loader, {
         "type": "reasoning_step",

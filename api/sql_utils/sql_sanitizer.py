@@ -152,20 +152,207 @@ class SQLIdentifierQuoter:
 
 
 class DatabaseSpecificQuoter:  # pylint: disable=too-few-public-methods
-    """Factory class to get the appropriate quote character for different databases."""
+    """
+    数据库特定引用字符工厂类
+    
+    为不同数据库类型提供正确的标识符引用字符。
+    """
+
+    # SQL 保留字集合（常见的跨数据库保留字）
+    SQL_RESERVED_WORDS = {
+        'SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER',
+        'ON', 'AS', 'AND', 'OR', 'NOT', 'IN', 'BETWEEN', 'LIKE', 'IS', 'NULL',
+        'ORDER', 'BY', 'GROUP', 'HAVING', 'LIMIT', 'OFFSET', 'INSERT', 'UPDATE',
+        'DELETE', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'VALUES', 'SET',
+        'COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'DISTINCT', 'ALL', 'UNION',
+        'INTERSECT', 'EXCEPT', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'CAST',
+        'ASC', 'DESC', 'INDEX', 'KEY', 'PRIMARY', 'FOREIGN', 'UNIQUE', 'CHECK',
+        'DEFAULT', 'CONSTRAINT', 'REFERENCES', 'CASCADE', 'RESTRICT', 'VIEW',
+        'TRIGGER', 'PROCEDURE', 'FUNCTION', 'SCHEMA', 'DATABASE', 'USER',
+        'GRANT', 'REVOKE', 'COMMIT', 'ROLLBACK', 'TRANSACTION', 'BEGIN'
+    }
 
     @staticmethod
     def get_quote_char(db_type: str) -> str:
         """
-        Get the appropriate quote character for a database type.
+        获取数据库类型对应的标识符引用字符
         
         Args:
-            db_type: Database type ('postgresql', 'mysql', etc.)
+            db_type: 数据库类型 ('postgresql', 'mysql', 'dm', 'kingbase' 等)
             
         Returns:
-            Quote character to use
+            引用字符
+            
+        引用规则：
+            - MySQL/MariaDB: 使用反引号 `
+            - PostgreSQL/SQLite/SQL Server/达梦/人大金仓: 使用双引号 "
         """
         if db_type.lower() in ['mysql', 'mariadb']:
             return '`'
-        # PostgreSQL, SQLite, SQL Server (standard SQL) use double quotes
+        # PostgreSQL, SQLite, SQL Server, 达梦, 人大金仓 (标准 SQL) 使用双引号
+        # 达梦和人大金仓都遵循标准 SQL 规范，使用双引号引用标识符
         return '"'
+
+    @staticmethod
+    def needs_quoting(identifier: str, db_type: str = 'postgresql') -> bool:
+        """
+        检查标识符是否需要引用
+        
+        Args:
+            identifier: 表名或列名
+            db_type: 数据库类型
+            
+        Returns:
+            如果需要引用返回 True，否则返回 False
+            
+        需要引用的情况：
+            1. 包含特殊字符（空格、连字符、点号等）
+            2. 是 SQL 保留字
+            3. 以数字开头
+            4. 包含大写字母（某些数据库区分大小写）
+        """
+        if not identifier or not identifier.strip():
+            return False
+        
+        # 已经被引用
+        quote_char = DatabaseSpecificQuoter.get_quote_char(db_type)
+        if identifier.startswith(quote_char) and identifier.endswith(quote_char):
+            return False
+        
+        # 检查是否是 SQL 保留字
+        if identifier.upper() in DatabaseSpecificQuoter.SQL_RESERVED_WORDS:
+            return True
+        
+        # 检查是否包含特殊字符
+        if any(char in SQLIdentifierQuoter.SPECIAL_CHARS for char in identifier):
+            return True
+        
+        # 检查是否以数字开头
+        if identifier[0].isdigit():
+            return True
+        
+        # 检查是否包含大写字母（对于区分大小写的数据库）
+        # 达梦和人大金仓默认不区分大小写，但如果标识符包含大写字母，
+        # 为了保持原样，需要引用
+        if db_type.lower() in ['dm', 'kingbase', 'postgresql']:
+            if any(char.isupper() for char in identifier):
+                return True
+        
+        return False
+
+    @staticmethod
+    def quote_identifier(identifier: str, db_type: str = 'postgresql') -> str:
+        """
+        引用标识符（如果需要）
+        
+        Args:
+            identifier: 要引用的标识符
+            db_type: 数据库类型
+            
+        Returns:
+            引用后的标识符
+            
+        引用规则：
+            - 达梦数据库: 使用双引号，内部双引号转义为两个双引号
+            - 人大金仓数据库: 使用双引号，内部双引号转义为两个双引号
+            - PostgreSQL: 使用双引号，内部双引号转义为两个双引号
+            - MySQL: 使用反引号，内部反引号转义为两个反引号
+        """
+        if not identifier or not identifier.strip():
+            return identifier
+        
+        identifier = identifier.strip()
+        
+        # 获取引用字符
+        quote_char = DatabaseSpecificQuoter.get_quote_char(db_type)
+        
+        # 如果已经被引用，直接返回
+        if identifier.startswith(quote_char) and identifier.endswith(quote_char):
+            return identifier
+        
+        # 转义标识符中的引号字符
+        # 对于双引号：" -> ""
+        # 对于反引号：` -> ``
+        escaped_identifier = identifier.replace(quote_char, quote_char + quote_char)
+        
+        # 返回引用后的标识符
+        return f'{quote_char}{escaped_identifier}{quote_char}'
+
+    @staticmethod
+    def escape_identifier(identifier: str, db_type: str = 'postgresql') -> str:
+        """
+        转义标识符中的特殊字符
+        
+        Args:
+            identifier: 要转义的标识符
+            db_type: 数据库类型
+            
+        Returns:
+            转义后的标识符
+            
+        转义规则：
+            - 双引号 " 转义为 ""
+            - 反引号 ` 转义为 ``
+        """
+        if not identifier:
+            return identifier
+        
+        quote_char = DatabaseSpecificQuoter.get_quote_char(db_type)
+        
+        # 转义引号字符
+        return identifier.replace(quote_char, quote_char + quote_char)
+
+    @staticmethod
+    def auto_quote_identifiers_for_db(
+        sql_query: str,
+        known_tables: Set[str],
+        db_type: str = 'postgresql'
+    ) -> Tuple[str, bool]:
+        """
+        根据数据库类型自动引用 SQL 查询中的标识符
+        
+        Args:
+            sql_query: SQL 查询语句
+            known_tables: 已知的表名集合
+            db_type: 数据库类型 ('postgresql', 'mysql', 'dm', 'kingbase')
+            
+        Returns:
+            (修改后的查询, 是否被修改) 的元组
+            
+        处理逻辑：
+            1. 提取查询中的表名
+            2. 检查每个表名是否需要引用
+            3. 使用正确的引用字符引用标识符
+            4. 处理表名.列名的情况
+        """
+        modified = False
+        result_query = sql_query
+        
+        # 获取引用字符
+        quote_char = DatabaseSpecificQuoter.get_quote_char(db_type)
+        
+        # 提取查询中的潜在表名
+        query_tables = SQLIdentifierQuoter.extract_table_names_from_query(sql_query)
+        
+        # 对每个需要引用的表名进行处理
+        for table in query_tables:
+            # 检查表是否存在于已知模式中且需要引用
+            if table in known_tables and DatabaseSpecificQuoter.needs_quoting(table, db_type):
+                # 引用表名
+                quoted = DatabaseSpecificQuoter.quote_identifier(table, db_type)
+                
+                # 替换未引用的出现为引用版本
+                # 使用单词边界避免部分替换
+                # 处理情况：FROM table, JOIN table, table.column 等
+                patterns_to_replace = [
+                    (rf'\b{re.escape(table)}\b(?!\s*\.)', quoted),
+                    (rf'\b{re.escape(table)}\.', f'{quoted}.'),
+                ]
+                
+                for pattern, replacement in patterns_to_replace:
+                    new_query = re.sub(pattern, replacement, result_query, flags=re.IGNORECASE)
+                    if new_query != result_query:
+                        modified = True
+                        result_query = new_query
+        
+        return result_query, modified

@@ -16,6 +16,17 @@ Connect and ask questions: [![Discord](https://img.shields.io/badge/Discord-%235
 ![new-qw-ui-gif](https://github.com/user-attachments/assets/34663279-0273-4c21-88a8-d20700020a07)
 
 
+## Supported Databases
+
+QueryWeaver supports the following database systems:
+
+- **PostgreSQL** - Full support for PostgreSQL databases
+- **MySQL** - Full support for MySQL databases  
+- **达梦数据库 (DM Database)** - 支持达梦数据库 8.0+
+- **人大金仓数据库 (KingbaseES)** - 支持人大金仓数据库 V8+
+
+For detailed connection guides, see the [Database Support Documentation](docs/database-support-quickstart.md).
+
 ## Get Started
 
 ### Docker
