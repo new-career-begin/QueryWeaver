@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\auth\db_optimization.py
+# hypothesis_version: 6.151.9
+
+['CALL db.indexes()', 'Organizations', 'email_index', 'error', 'expires_at_index', 'identity', 'identity_indexes', 'label', 'last_login_index', 'property', 'provider', 'provider_user_id', 'token_id_index', 'token_indexes', 'type', 'user', 'user_email_index', 'user_indexes', '创建 Token 索引时发生错误: %s', '创建 User 索引时发生错误: %s', '开始初始化数据库索引...', '成功创建 Token 节点的 id 索引', '清理过期 Token 时发生错误: %s', '获取索引信息时发生错误: %s']

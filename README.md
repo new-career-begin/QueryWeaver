@@ -27,6 +27,41 @@ QueryWeaver supports the following database systems:
 
 For detailed connection guides, see the [Database Support Documentation](docs/database-support-quickstart.md).
 
+## Internationalization (i18n)
+
+QueryWeaver supports multiple languages to provide a localized experience for users worldwide.
+
+### Supported Languages
+
+- **简体中文 (Simplified Chinese)** - Default language
+- **English** - Full English translation
+
+### Language Switching
+
+Users can easily switch between languages using the language switcher in the application header:
+
+1. Click the **globe icon** (🌐) in the top-right corner of the application
+2. Select your preferred language from the dropdown menu
+3. The interface will immediately update to display content in the selected language
+4. Your language preference is automatically saved and will be remembered on your next visit
+
+### Features
+
+- **Complete UI Translation**: All user-facing text, buttons, labels, and messages are translated
+- **Localized Formatting**: Dates, times, and numbers are formatted according to language conventions
+  - Chinese: Uses "年月日" format and 24-hour time
+  - English: Uses standard date formats and 12/24-hour time based on locale
+- **Error Messages**: All error messages and notifications are displayed in the selected language
+- **Accessibility**: ARIA labels and screen reader text are fully localized
+- **Browser Language Detection**: Automatically detects and uses your browser's language preference on first visit
+- **Persistent Preference**: Your language choice is saved locally and persists across sessions
+
+### For Developers
+
+If you're contributing translations or adding new languages, please refer to:
+- [Localization Development Guide](docs/i18n-development-guide.md) - How to add and maintain translations
+- [Translation Contribution Guide](docs/i18n-contribution-guide.md) - Translation quality standards and review process
+
 ## Get Started
 
 ### Docker
@@ -154,10 +189,74 @@ Core endpoints
 - POST /graphs — upload or create a graph (JSON payload or file upload)
 - POST /graphs/{graph_id} — run a Text2SQL chat query against the named graph (streaming response)
 
+LLM Configuration endpoints (🆕)
+- GET /api/config/llm — get user's LLM configuration
+- POST /api/config/llm — save user's LLM configuration
+- DELETE /api/config/llm — delete user's LLM configuration
+- POST /api/config/llm/test — test LLM provider connection
+
 Authentication
 - Add an Authorization header: `Authorization: Bearer <API_TOKEN>`
 
-Examples
+### Using DeepSeek via API
+
+You can configure DeepSeek as your LLM provider through the API:
+
+#### 1. Save DeepSeek Configuration
+
+```bash
+curl -X POST https://app.queryweaver.ai/api/config/llm \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "deepseek",
+    "completion_model": "deepseek-chat",
+    "embedding_model": "text-embedding-ada-002",
+    "api_key": "sk-xxxxxxxxxxxxx",
+    "base_url": "https://api.deepseek.com",
+    "parameters": {
+      "temperature": 0.7,
+      "max_tokens": 2000
+    }
+  }'
+```
+
+#### 2. Test DeepSeek Connection
+
+```bash
+curl -X POST https://app.queryweaver.ai/api/config/llm/test \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "deepseek",
+    "api_key": "sk-xxxxxxxxxxxxx",
+    "base_url": "https://api.deepseek.com"
+  }'
+```
+
+#### 3. Get Current Configuration
+
+```bash
+curl -X GET https://app.queryweaver.ai/api/config/llm \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### 4. Query with DeepSeek
+
+Once configured, all Text2SQL queries will automatically use DeepSeek:
+
+```bash
+curl -X POST https://app.queryweaver.ai/graphs/my_database \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat": ["查询用户表的前10条记录"]
+  }'
+```
+
+The system will use your DeepSeek configuration for SQL generation.
+
+### Examples
 
 1) List graphs (GET)
 
@@ -403,9 +502,17 @@ APP_ENV=development
 
 ### AI/LLM configuration
 
-QueryWeaver uses AI models for Text2SQL conversion and supports both Azure OpenAI and OpenAI directly.
+QueryWeaver uses AI models for Text2SQL conversion and supports multiple LLM providers: Azure OpenAI, OpenAI, and DeepSeek.
 
-#### Default: Azure OpenAI
+#### Supported LLM Providers
+
+QueryWeaver supports three LLM providers with automatic configuration:
+
+1. **Azure OpenAI** (Default)
+2. **OpenAI** (Direct API)
+3. **DeepSeek** (Cost-effective Chinese LLM) - 🆕
+
+#### Option 1: Azure OpenAI (Default)
 
 By default, QueryWeaver is configured to use Azure OpenAI. You need to set all three Azure credentials:
 
@@ -415,7 +522,7 @@ AZURE_API_BASE=https://your-resource.openai.azure.com/
 AZURE_API_VERSION=2024-12-01-preview
 ```
 
-#### Alternative: OpenAI directly
+#### Option 2: OpenAI directly
 
 To use OpenAI directly instead of Azure, simply set the `OPENAI_API_KEY` environment variable:
 
@@ -427,7 +534,67 @@ When `OPENAI_API_KEY` is provided, QueryWeaver automatically switches to use Ope
 - Embedding model: `openai/text-embedding-ada-002`
 - Completion model: `openai/gpt-4.1`
 
-This configuration is handled automatically in `api/config.py` - you only need to provide the appropriate API key.
+#### Option 3: DeepSeek (Recommended for cost-effectiveness) 🆕
+
+DeepSeek is a high-performance, cost-effective Chinese LLM provider with OpenAI-compatible APIs. It offers:
+- **90% lower cost** compared to OpenAI
+- **High performance** for Chinese and English queries
+- **OpenAI-compatible API** for easy integration
+- **国产化支持** - 支持国产化部署需求
+
+##### Getting DeepSeek API Key
+
+1. Visit [DeepSeek Platform](https://platform.deepseek.com/)
+2. Register an account (支持中国手机号注册)
+3. Navigate to API Keys section
+4. Create a new API key
+5. Copy the key (starts with `sk-`)
+
+##### Configuration via Environment Variables
+
+```bash
+# DeepSeek API credentials
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx
+DEEPSEEK_BASE_URL=https://api.deepseek.com  # Optional, uses default if not set
+
+# Optional: specify models (uses defaults if not set)
+DEEPSEEK_COMPLETION_MODEL=deepseek-chat
+DEEPSEEK_EMBEDDING_MODEL=text-embedding-ada-002
+```
+
+##### Configuration via Web UI (Recommended)
+
+After logging in, you can configure DeepSeek through the web interface:
+
+1. Navigate to **Settings** → **AI Model Configuration**
+2. Select **DeepSeek** as the provider
+3. Enter your API Key
+4. Choose your preferred models:
+   - **Completion Model**: `deepseek-chat` (general) or `deepseek-coder` (code-focused)
+   - **Embedding Model**: `text-embedding-ada-002`
+5. Click **Test Connection** to verify
+6. Click **Save** to apply the configuration
+
+The configuration is stored securely (encrypted) in FalkorDB and takes precedence over environment variables.
+
+##### Available DeepSeek Models
+
+**Completion Models:**
+- `deepseek-chat` - General-purpose conversational model (recommended)
+- `deepseek-coder` - Optimized for code generation and technical queries
+
+**Embedding Models:**
+- Currently uses OpenAI's `text-embedding-ada-002` (DeepSeek's embedding model coming soon)
+
+##### Configuration Priority
+
+QueryWeaver loads LLM configuration in the following priority order:
+
+1. **User Configuration** (highest) - Set via web UI, stored in FalkorDB
+2. **Environment Variables** - Set in `.env` or system environment
+3. **System Defaults** (lowest) - Fallback to Azure OpenAI
+
+This allows per-user model selection while maintaining system-wide defaults.
 
 #### Docker examples with AI configuration
 
@@ -448,6 +615,35 @@ docker run -p 5000:5000 -it \
   -e OPENAI_API_KEY=your_openai_api_key \
   falkordb/queryweaver
 ```
+
+Using DeepSeek:
+```bash
+docker run -p 5000:5000 -it \
+  -e FASTAPI_SECRET_KEY=your_secret_key \
+  -e DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx \
+  -e DEEPSEEK_BASE_URL=https://api.deepseek.com \
+  falkordb/queryweaver
+```
+
+#### Encryption Key for Secure Storage
+
+When using the web UI to configure LLM providers, API keys are encrypted before storage. Set an encryption key:
+
+```bash
+# Generate a secure encryption key (32 bytes, base64 encoded)
+LLM_CONFIG_ENCRYPTION_KEY=your-32-byte-base64-encoded-key
+```
+
+If not set, a default key will be generated (not recommended for production).
+
+#### Switching Between Providers
+
+You can switch between providers at any time:
+
+- **System-wide**: Change environment variables and restart the application
+- **Per-user**: Use the web UI to configure your preferred provider (no restart needed)
+
+For detailed configuration guides and troubleshooting, see [docs/deepseek-setup.md](docs/deepseek-setup.md).
 
 ## Testing
 

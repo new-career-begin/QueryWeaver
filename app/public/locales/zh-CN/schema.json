@@ -1,0 +1,15 @@
+{
+  "title": "数据库模式",
+  "loading": "加载模式中...",
+  "noData": "没有可用的模式数据",
+  "selectDatabase": "请先选择数据库",
+  "noSchemaData": "此数据库没有模式数据",
+  "controls": {
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "center": "居中"
+  },
+  "errors": {
+    "loadFailed": "加载模式失败"
+  }
+}

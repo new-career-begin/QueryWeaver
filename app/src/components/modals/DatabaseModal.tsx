@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ interface ConnectionStep {
 }
 
 const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
+  const { t } = useTranslation();
   const [connectionMode, setConnectionMode] = useState<'url' | 'manual'>('url');
   const [selectedDatabase, setSelectedDatabase] = useState("");
   const [connectionUrl, setConnectionUrl] = useState("");
@@ -61,12 +63,12 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
   };
 
   const handleConnect = async () => {
-    // Validate based on connection mode
+    // 根据连接模式验证
     if (connectionMode === 'url') {
       if (!connectionUrl || !selectedDatabase) {
         toast({
-          title: "Missing Information",
-          description: "Please select database type and enter connection URL",
+          title: t('database.messages.missingInfo'),
+          description: t('database.messages.selectDatabaseAndUrl'),
           variant: "destructive",
         });
         return;
@@ -74,8 +76,8 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
     } else {
       if (!selectedDatabase || !host || !port || !database || !username) {
         toast({
-          title: "Missing Information",
-          description: "Please fill in all required fields",
+          title: t('database.messages.missingInfo'),
+          description: t('database.messages.fillAllFields'),
           variant: "destructive",
         });
         return;
@@ -119,12 +121,12 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
 
         // Fallback error messages by status code
         const errorMessages: Record<number, string> = {
-          400: 'Invalid database connection URL.',
-          401: 'Not authenticated. Please sign in to connect databases.',
-          403: 'Access denied. You do not have permission to connect databases.',
+          400: t('errors.database.invalidUrl'),
+          401: t('errors.auth.notAuthenticated'),
+          403: t('errors.auth.accessDenied'),
           409: 'Conflict with existing database connection.',
           422: 'Invalid database connection parameters.',
-          500: 'Server error. Please try again later.',
+          500: t('errors.network.serverError'),
         };
 
         throw new Error(errorMessages[response.status] || `Failed to connect to database (${response.status})`);
@@ -160,13 +162,13 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
           
           if (obj.success) {
             toast({
-              title: "Connected Successfully",
-              description: "Database connection established!",
+              title: t('database.messages.connectedSuccessfully'),
+              description: t('database.messages.databaseConnected'),
             });
             setTimeout(async () => {
               await refreshGraphs();
               onOpenChange(false);
-              // Reset form
+              // 重置表单
               setConnectionMode('url');
               setSelectedDatabase("");
               setConnectionUrl("");
@@ -179,17 +181,17 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
             }, 1000);
           } else {
             toast({
-              title: "Connection Failed",
-              description: obj.message || 'Unknown error',
+              title: t('database.messages.connectionFailed'),
+              description: obj.message || t('errors.network.unknownError'),
               variant: "destructive",
             });
           }
         } else if (obj.type === 'error') {
-          addStep(obj.message || 'Error', 'error');
+          addStep(obj.message || t('common.status.error'), 'error');
           setIsConnecting(false);
           toast({
-            title: "Connection Error",
-            description: obj.message || 'Unknown error',
+            title: t('database.messages.connectionError'),
+            description: obj.message || t('errors.network.unknownError'),
             variant: "destructive",
           });
         }
@@ -222,8 +224,8 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
     } catch (error) {
       setIsConnecting(false);
       toast({
-        title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect to database",
+        title: t('database.messages.connectionFailed'),
+        description: error instanceof Error ? error.message : t('database.messages.connectionFailed'),
         variant: "destructive",
       });
     }
@@ -234,51 +236,51 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-card-foreground">
-            Connect to Database
+            {t('database.modal.title')}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Connect to PostgreSQL or MySQL database using a connection URL or manual entry.{" "}
+            {t('database.modal.description')}{" "}
             <a
               href="https://www.falkordb.com/privacy-policy/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              Privacy Policy
+              {t('database.modal.privacyPolicy')}
             </a>
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 mt-6" data-testid="database-modal-content">
-          {/* Database Type Selection */}
+          {/* 数据库类型选择 */}
           <div className="space-y-2">
             <Label htmlFor="database-type" className="text-sm font-medium">
-              Database Type
+              {t('database.fields.databaseType')}
             </Label>
             <Select onValueChange={setSelectedDatabase} value={selectedDatabase}>
               <div data-testid="database-type-select">
                 <SelectTrigger className="bg-muted border-border focus:ring-purple-500">
-                  <SelectValue placeholder="-- Select Database --" />
+                  <SelectValue placeholder={t('database.fields.selectDatabase')} />
                 </SelectTrigger>
               </div>
               <SelectContent className="bg-card border-border">
                 <SelectItem value="postgresql" className="focus:bg-purple-500/20 focus:text-foreground" data-testid="postgresql-option">
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-blue-500 rounded-sm mr-2"></div>
-                    PostgreSQL
+                    {t('database.types.postgresql')}
                   </div>
                 </SelectItem>
                 <SelectItem value="mysql" className="focus:bg-purple-500/20 focus:text-foreground" data-testid="mysql-option">
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-orange-500 rounded-sm mr-2"></div>
-                    MySQL
+                    {t('database.types.mysql')}
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Connection Mode Toggle */}
+          {/* 连接模式切换 */}
           {selectedDatabase && (
             <div className="flex gap-2 p-1 bg-muted rounded-lg">
               <Button
@@ -288,7 +290,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                 onClick={() => setConnectionMode('url')}
                 data-testid="connection-mode-url"
               >
-                Connection URL
+                {t('database.modes.url')}
               </Button>
               <Button
                 type="button"
@@ -297,7 +299,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                 onClick={() => setConnectionMode('manual')}
                 data-testid="connection-mode-manual"
               >
-                Manual Entry
+                {t('database.modes.manual')}
               </Button>
             </div>
           )}
@@ -305,7 +307,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
           {selectedDatabase && connectionMode === 'url' && (
             <div className="space-y-2">
               <Label htmlFor="connection-url" className="text-sm font-medium">
-                Connection URL
+                {t('database.fields.connectionUrl')}
               </Label>
               <Input
                 id="connection-url"
@@ -320,7 +322,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                 className="bg-muted border-border font-mono text-sm focus-visible:ring-purple-500"
               />
               <p className="text-xs text-muted-foreground">
-                Enter your database connection string
+                {t('database.fields.enterConnectionString')}
               </p>
             </div>
           )}
@@ -328,7 +330,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
           {selectedDatabase && connectionMode === 'manual' && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="host" className="text-sm font-medium">Host</Label>
+                <Label htmlFor="host" className="text-sm font-medium">{t('database.fields.host')}</Label>
                 <Input
                   id="host"
                   placeholder="localhost"
@@ -339,7 +341,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="port" className="text-sm font-medium">Port</Label>
+                <Label htmlFor="port" className="text-sm font-medium">{t('database.fields.port')}</Label>
                 <Input
                   id="port"
                   placeholder={selectedDatabase === "postgresql" ? "5432" : "3306"}
@@ -350,7 +352,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="database" className="text-sm font-medium">Database Name</Label>
+                <Label htmlFor="database" className="text-sm font-medium">{t('database.fields.database')}</Label>
                 <Input
                   id="database"
                   placeholder="my_database"
@@ -361,7 +363,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+                <Label htmlFor="username" className="text-sm font-medium">{t('database.fields.username')}</Label>
                 <Input
                   id="username"
                   placeholder="username"
@@ -372,7 +374,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t('database.fields.password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -385,7 +387,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
             </>
           )}
 
-          {/* Connection Progress Steps */}
+          {/* 连接进度步骤 */}
           {connectionSteps.length > 0 && (
             <div className="mt-4 space-y-2 max-h-[220px] overflow-y-auto border border-border rounded-md p-3 bg-muted/30">
               {connectionSteps.map((step, index) => (
@@ -418,7 +420,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
             className="hover:bg-purple-500/20 hover:text-foreground"
             data-testid="cancel-database-button"
           >
-            Cancel
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleConnect}
@@ -426,7 +428,7 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
             className="bg-purple-600 hover:bg-purple-700"
             data-testid="connect-database-button"
           >
-            {isConnecting ? "Connecting..." : "Connect"}
+            {isConnecting ? t('database.messages.connecting') : t('common.buttons.connect')}
           </Button>
         </div>
       </DialogContent>

@@ -1,0 +1,53 @@
+{
+  "modal": {
+    "title": "Connect to Database",
+    "description": "Connect to a PostgreSQL or MySQL database using a connection URL or manual entry.",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "fields": {
+    "databaseType": "Database Type",
+    "connectionUrl": "Connection URL",
+    "host": "Host",
+    "port": "Port",
+    "database": "Database Name",
+    "username": "Username",
+    "password": "Password",
+    "selectDatabase": "-- Select Database --",
+    "enterConnectionString": "Enter your database connection string"
+  },
+  "types": {
+    "postgresql": "PostgreSQL",
+    "mysql": "MySQL"
+  },
+  "modes": {
+    "url": "Connection URL",
+    "manual": "Manual Entry"
+  },
+  "messages": {
+    "connecting": "Connecting...",
+    "connected": "Connected Successfully",
+    "connectionFailed": "Connection Failed",
+    "deleteConfirm": "Are you sure you want to delete database \"{{name}}\"?",
+    "deleteSuccess": "Successfully deleted \"{{name}}\"",
+    "deleteFailed": "Delete Failed",
+    "refreshSuccess": "Schema Refreshed Successfully",
+    "refreshFailed": "Schema Refresh Failed",
+    "noDatabaseSelected": "Please select a database first",
+    "missingFields": "Please fill in all required fields",
+    "missingInfo": "Missing Information",
+    "selectDatabaseAndUrl": "Please select database type and enter connection URL",
+    "fillAllFields": "Please fill in all required fields",
+    "connectedSuccessfully": "Connected Successfully",
+    "databaseConnected": "Database connection established!",
+    "connectionError": "Connection Error",
+    "demoDatabasesCannotBeDeleted": "Demo databases cannot be deleted",
+    "deleteDatabase": "Delete {{name}}"
+  },
+  "steps": {
+    "validating": "Validating connection information...",
+    "connecting": "Connecting to database...",
+    "loadingSchema": "Loading database schema...",
+    "buildingGraph": "Building relationship graph...",
+    "complete": "Connection Complete"
+  }
+}

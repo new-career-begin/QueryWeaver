@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\extensions.py
+# hypothesis_version: 6.151.9
+
+[6379, 'FALKORDB_URL', 'localhost']

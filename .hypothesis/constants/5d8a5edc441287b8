@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\prompt_cache.py
+# hypothesis_version: 6.151.9
+
+[0.0, 128, 3600, 'cache_size', 'created_at', 'evictions', 'expires_at', 'healer_base', 'hit_rate', 'hits', 'last_accessed', 'max_size', 'misses', 'prompt', 'response_formatter', 'total_requests', 'utf-8', '|']

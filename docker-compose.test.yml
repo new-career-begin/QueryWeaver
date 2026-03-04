@@ -1,0 +1,92 @@
+version: '3.8'
+
+# QueryWeaver 测试环境 Docker Compose 配置
+# 用于本地运行集成测试和数据库测试
+
+services:
+  # FalkorDB 图数据库 - 用于存储数据库模式图
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: queryweaver-test-falkordb
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # PostgreSQL 测试数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: queryweaver-test-postgres
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./tests/fixtures/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # MySQL 测试数据库
+  mysql:
+    image: mysql:8.0
+    container_name: queryweaver-test-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-test-data:/var/lib/mysql
+      - ./tests/fixtures/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "testuser", "-ptestpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # 人大金仓测试数据库（使用 PostgreSQL 兼容镜像）
+  kingbase:
+    image: postgres:16-alpine
+    container_name: queryweaver-test-kingbase
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    ports:
+      - "54321:5432"
+    volumes:
+      - kingbase-test-data:/var/lib/postgresql/data
+      - ./tests/fixtures/kingbase-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  postgres-test-data:
+  mysql-test-data:
+  kingbase-test-data:

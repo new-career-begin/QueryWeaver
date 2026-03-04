@@ -27,9 +27,6 @@ from graphiti_core.cross_encoder import OpenAIRerankerClient
 from graphiti_core.search.search_config_recipes import NODE_HYBRID_SEARCH_RRF
 
 
-from litellm import completion
-
-
 def extract_embedding_model_name(full_model_name: str) -> str:
     """
     Extract just the model name without provider prefix for Graphiti.

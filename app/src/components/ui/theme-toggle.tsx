@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Tooltip,
   TooltipContent,
@@ -10,6 +11,7 @@ import {
 type Theme = "light" | "dark";
 
 const ThemeToggle = () => {
+  const { t } = useTranslation();
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       const savedTheme = localStorage.getItem("theme");
@@ -39,7 +41,7 @@ const ThemeToggle = () => {
   };
 
   const getTooltipText = () => {
-    return theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+    return theme === "dark" ? t('common.theme.switchToLight') : t('common.theme.switchToDark');
   };
 
   return (
@@ -49,7 +51,7 @@ const ThemeToggle = () => {
           <button
             onClick={toggleTheme}
             className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
-            aria-label="Toggle theme"
+            aria-label={t('common.theme.toggleTheme')}
             data-testid="theme-toggle"
           >
             {getIcon()}

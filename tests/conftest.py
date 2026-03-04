@@ -6,6 +6,7 @@ import time
 
 import pytest
 import requests
+from dotenv import load_dotenv
 
 
 def pytest_configure(config):
@@ -13,15 +14,21 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "e2e: mark test as end-to-end test"
     )
+    
+    # 加载 .env 文件中的环境变量
+    # 这样测试就能使用项目配置的 FalkorDB 地址
+    load_dotenv()
 
 
 @pytest.fixture(scope="session")
 def fastapi_app():
     """Start the FastAPI application for testing."""
+    # 加载 .env 文件（如果 pytest_configure 没有执行）
+    load_dotenv()
+    
     # Ensure required environment variables are set for testing
+    # 注意：只在环境变量不存在时设置默认值，这样 .env 中的配置会优先使用
     env_defaults = {
-        'FALKORDB_HOST': 'localhost',
-        'FALKORDB_PORT': '6379',
         'FASTAPI_SECRET_KEY': 'test-secret-key-for-e2e-tests',
         'GOOGLE_CLIENT_ID': 'test-google-client-id',
         'GOOGLE_CLIENT_SECRET': 'test-google-client-secret',

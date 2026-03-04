@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\openai\types\audio\speech_model.py
+# hypothesis_version: 6.151.9
+
+['SpeechModel', 'gpt-4o-mini-tts', 'tts-1', 'tts-1-hd']

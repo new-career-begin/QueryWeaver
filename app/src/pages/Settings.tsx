@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Star, PanelLeft } from "lucide-react";
+import { ArrowLeft, Star, PanelLeft, Settings as SettingsIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDatabase } from "@/contexts/DatabaseContext";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Sidebar from "@/components/layout/Sidebar";
 import SchemaViewer from "@/components/schema";
+import { AIConfigModal } from "@/components/modals/AIConfigModal";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -74,6 +75,17 @@ const Settings = () => {
     return false;
   });
 
+  // AI 配置状态
+  const [showAIConfig, setShowAIConfig] = useState(false);
+  const [currentAIConfig, setCurrentAIConfig] = useState<{
+    provider: string;
+    completion_model: string;
+    embedding_model: string;
+    api_key?: string;
+    base_url?: string;
+  } | null>(null);
+  const [loadingAIConfig, setLoadingAIConfig] = useState(true);
+
   // Fetch GitHub stars
   useEffect(() => {
     fetch('https://api.github.com/repos/FalkorDB/QueryWeaver')
@@ -87,6 +99,99 @@ const Settings = () => {
         console.log('Failed to fetch GitHub stars:', error);
       });
   }, []);
+
+  // 加载当前 AI 配置
+  useEffect(() => {
+    const loadAIConfig = async () => {
+      // 如果未认证，直接设置为不加载状态
+      if (!isAuthenticated) {
+        setLoadingAIConfig(false);
+        return;
+      }
+
+      try {
+        setLoadingAIConfig(true);
+        const response = await fetch('/api/config/llm', {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.config) {
+            setCurrentAIConfig(data.config);
+          } else if (data.success && !data.config) {
+            // 用户未配置，使用默认配置
+            setCurrentAIConfig(null);
+          }
+        } else if (response.status === 401) {
+          // 未授权，可能 token 过期
+          console.warn('未授权访问 AI 配置，请重新登录');
+        } else {
+          // 其他错误
+          console.error('加载 AI 配置失败:', response.status, response.statusText);
+          toast({
+            title: "加载配置失败",
+            description: "无法加载 AI 模型配置，请刷新页面重试",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('加载 AI 配置失败:', error);
+        toast({
+          title: "加载配置失败",
+          description: error instanceof Error ? error.message : "网络错误，请检查连接",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingAIConfig(false);
+      }
+    };
+
+    loadAIConfig();
+  }, [isAuthenticated, toast]);
+
+  // 保存 AI 配置
+  const handleSaveAIConfig = async (config: any) => {
+    try {
+      const response = await fetch('/api/config/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(config),
+      });
+
+      if (!response.ok) {
+        throw new Error('保存配置失败');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // 重新加载配置
+        const loadResponse = await fetch('/api/config/llm', {
+          credentials: 'include',
+        });
+        
+        if (loadResponse.ok) {
+          const loadData = await loadResponse.json();
+          if (loadData.success && loadData.config) {
+            setCurrentAIConfig(loadData.config);
+          }
+        }
+
+        toast({
+          title: "配置已保存",
+          description: "AI 模型配置已成功保存",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "保存失败",
+        description: error instanceof Error ? error.message : "无法保存 AI 配置",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   // Handle window resize to update layout
   useEffect(() => {
@@ -493,6 +598,83 @@ const Settings = () => {
         {/* Content */}
         <div className="flex-1 overflow-auto p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-6">
+            {/* AI 模型配置 */}
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <SettingsIcon className="w-5 h-5 text-purple-600" />
+                      <Label className="text-base font-semibold text-foreground">
+                        AI 模型配置
+                      </Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      配置用于 Text2SQL 的 AI 模型提供商和参数
+                    </p>
+                  </div>
+                </div>
+
+                {/* 当前配置信息 */}
+                {loadingAIConfig ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                    <span>加载配置中...</span>
+                  </div>
+                ) : currentAIConfig ? (
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">当前提供商：</span>
+                      <Badge variant="secondary" className="bg-purple-600/20 text-purple-600 hover:bg-purple-600/30">
+                        {currentAIConfig.provider === 'deepseek' && 'DeepSeek'}
+                        {currentAIConfig.provider === 'openai' && 'OpenAI'}
+                        {currentAIConfig.provider === 'azure' && 'Azure OpenAI'}
+                        {!['deepseek', 'openai', 'azure'].includes(currentAIConfig.provider) && currentAIConfig.provider}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">对话模型：</span>
+                      <span className="text-sm font-mono text-foreground">
+                        {currentAIConfig.completion_model}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">嵌入模型：</span>
+                      <span className="text-sm font-mono text-foreground">
+                        {currentAIConfig.embedding_model}
+                      </span>
+                    </div>
+                    {currentAIConfig.base_url && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">API 端点：</span>
+                        <span className="text-sm font-mono text-foreground truncate max-w-[200px]" title={currentAIConfig.base_url}>
+                          {currentAIConfig.base_url}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-yellow-900/20 border border-yellow-800/30 rounded-lg p-4">
+                    <p className="text-sm text-yellow-300">
+                      未配置 AI 模型，系统将使用环境变量或默认配置
+                    </p>
+                  </div>
+                )}
+
+                {/* 修改配置按钮 */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowAIConfig(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    disabled={loadingAIConfig}
+                  >
+                    <SettingsIcon className="w-4 h-4 mr-2" />
+                    {currentAIConfig ? '修改配置' : '配置 AI 模型'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {/* Memory Toggle */}
             <div className="bg-card border border-border rounded-lg p-4">
               <div className="flex items-center justify-between">
@@ -600,6 +782,14 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* AI 配置模态框 */}
+      <AIConfigModal
+        open={showAIConfig}
+        onClose={() => setShowAIConfig(false)}
+        onSave={handleSaveAIConfig}
+        allowSkip={false}
+      />
     </div>
   );
 };

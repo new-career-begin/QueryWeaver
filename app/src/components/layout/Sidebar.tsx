@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -88,6 +89,7 @@ const SidebarIcon = ({ icon: Icon, label, active, onClick, href, testId }: {
 
 
 const Sidebar = ({ className, onSchemaClick, isSchemaOpen, isCollapsed = false, onToggleCollapse, onSettingsClick }: SidebarProps) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -118,18 +120,18 @@ const Sidebar = ({ className, onSchemaClick, isSchemaOpen, isCollapsed = false, 
             <button
               onClick={onToggleCollapse}
               className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-card text-lg font-semibold text-foreground hover:bg-muted"
-              title="Toggle Sidebar (Mobile)"
+              title={t('common.sidebar.toggleSidebar')}
               data-testid="sidebar-toggle"
             >
               <PanelLeft className="h-5 w-5 transition-all group-hover:scale-110" />
-              <span className="sr-only">Toggle Sidebar</span>
+              <span className="sr-only">{t('common.sidebar.toggleSidebar')}</span>
             </button>
           )}
           <ThemeToggle />
           {/* <SidebarIcon icon={BrainCircuit} label="Query" active /> */}
           <SidebarIcon
             icon={Waypoints}
-            label="Schema"
+            label={t('common.sidebar.schema')}
             active={isSchemaOpen}
             onClick={onSchemaClick}
             testId="schema-button"
@@ -141,9 +143,9 @@ const Sidebar = ({ className, onSchemaClick, isSchemaOpen, isCollapsed = false, 
       </div>
       
       <nav className="flex flex-col items-center gap-4 px-2 py-4">
-        <SidebarIcon icon={Settings} label="Settings" active={isSettingsOpen} onClick={handleSettingsClick} testId="settings-button" />
-        <SidebarIcon icon={BookOpen} label="Documentation" href="https://docs.falkordb.com/" testId="documentation-link" />
-        <SidebarIcon icon={LifeBuoy} label="Support" href="https://discord.com/invite/jyUgBweNQz" testId="support-link" />
+        <SidebarIcon icon={Settings} label={t('common.sidebar.settings')} active={isSettingsOpen} onClick={handleSettingsClick} testId="settings-button" />
+        <SidebarIcon icon={BookOpen} label={t('common.sidebar.documentation')} href="https://docs.falkordb.com/" testId="documentation-link" />
+        <SidebarIcon icon={LifeBuoy} label={t('common.sidebar.support')} href="https://discord.com/invite/jyUgBweNQz" testId="support-link" />
       </nav>
     </aside>
     </>

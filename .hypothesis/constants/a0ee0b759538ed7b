@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\types\vector_store_files.py
+# hypothesis_version: 6.151.9
+
+['asc', 'auto', 'cancelled', 'completed', 'desc', 'failed', 'in_progress', 'list', 'static', 'text', 'vector_store.file']

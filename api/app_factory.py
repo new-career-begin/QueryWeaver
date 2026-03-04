@@ -20,13 +20,18 @@ from api.routes.auth import auth_router, init_auth
 from api.routes.graphs import graphs_router
 from api.routes.database import database_router
 from api.routes.tokens import tokens_router
+from api.routes.config import router as config_router
 from api.config import validate_oauth_config
+from api.logging_config import configure_logging
+from api.connection_pool import ConnectionPoolManager
 
 # Load environment variables from .env file
 load_dotenv()
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+
+# 配置日志
+# 使用环境变量控制日志格式：USE_JSON_LOGS=true 启用 JSON 格式（生产环境推荐）
+use_json_logs = os.getenv("USE_JSON_LOGS", "true").lower() in ("1", "true", "yes")
+configure_logging(use_json=use_json_logs, level=logging.INFO)
 
 # 验证 OAuth 配置
 validate_oauth_config()
@@ -61,6 +66,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):  # pylint: disable=too-few-public-
 def create_app():
     """Create and configure the FastAPI application."""
 
+    # 初始化 HTTP 连接池
+    # 在应用启动时配置全局连接池，用于复用 HTTP 连接
+    ConnectionPoolManager.initialize()
+
     # Create the FastAPI app instance just to set the o routes
     # Will be merged with MCP app later if MCP is enabled
     app = FastAPI(
@@ -72,6 +81,7 @@ def create_app():
     app.include_router(graphs_router, prefix="/graphs")
     app.include_router(database_router)
     app.include_router(tokens_router, prefix="/tokens")
+    app.include_router(config_router)  # LLM 配置管理路由
 
 
 
@@ -235,6 +245,18 @@ def create_app():
     init_auth(app)
 
     setup_oauth_handlers(app, app.state.oauth)
+
+    # 添加应用关闭事件处理器，清理连接池资源
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """
+        应用关闭时的事件处理器
+        
+        清理 HTTP 连接池资源，确保所有连接正确关闭
+        """
+        logging.info("应用关闭，清理连接池资源")
+        await ConnectionPoolManager.close_all()
+        logging.info("连接池资源已清理")
 
     # Serve favicon
     @app.get("/favicon.ico", include_in_schema=False)

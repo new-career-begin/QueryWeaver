@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\anthropic\experimental_pass_through\responses_adapters\streaming_iterator.py
+# hypothesis_version: 6.151.9
+
+['assistant', 'call_id', 'content', 'content_block', 'content_block_delta', 'content_block_start', 'content_block_stop', 'delta', 'end_turn', 'function_call', 'id', 'incomplete', 'index', 'input', 'input_json_delta', 'input_tokens', 'input_tokens_details', 'item', 'item_id', 'max_tokens', 'message', 'message_delta', 'message_start', 'message_stop', 'model', 'name', 'output', 'output_tokens', 'partial_json', 'reasoning', 'response', 'response.completed', 'response.created', 'response.failed', 'response.incomplete', 'role', 'status', 'stop_reason', 'stop_sequence', 'text', 'text_delta', 'thinking', 'thinking_delta', 'tool_use', 'type', 'usage']

@@ -10,8 +10,8 @@ failed query to generate a corrected version.
 
 import re
 from typing import Dict, Callable, Any
-from litellm import completion
 from api.config import Config
+from api.llm_utils import call_completion_sync
 from .utils import parse_response
 
 
@@ -223,9 +223,8 @@ IMPORTANT:
         self.messages.append({"role": "user", "content": prompt})
         
         for attempt in range(self.max_healing_attempts):
-            # Call LLM
-            response = completion(
-                model=Config.COMPLETION_MODEL,
+            # 调用 LLM（使用同步版本，因为此方法不是异步的）
+            response = call_completion_sync(
                 messages=self.messages,
                 temperature=0.1,
                 max_tokens=2000

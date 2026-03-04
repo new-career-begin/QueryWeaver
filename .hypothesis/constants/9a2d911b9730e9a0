@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\types\services.py
+# hypothesis_version: 6.151.9
+
+['auth', 'batch_write_to_db', 'counter', 'did an error occur', 'gauge', 'histogram', 'metrics', 'pod_lock_manager', 'postgres', 'proxy_pre_call', 'redis', 'reset_budget_job', 'router', 'self', 'what was the error']

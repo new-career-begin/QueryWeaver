@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\config.py
+# hypothesis_version: 6.151.9
+
+[0.5, 100, 'DEEPSEEK_API_KEY', 'Hello World', 'LiteLLM', 'OPENAI_API_KEY', 'OPENAI_MODEL', 'UserConfig', 'WECHAT_APP_ID', 'WECHAT_APP_SECRET', 'WECOM_AGENT_ID', 'WECOM_CORP_ID', 'WECOM_CORP_SECRET', 'access_token_url', 'agent_id', 'api_base', 'api_key', 'app_id', 'app_secret', 'authorize_url', 'azure', 'azure/gpt-4.1', 'base_url', 'code', 'completion_model', 'corp_id', 'corp_secret', 'deepseek', 'deepseek-chat', 'embedding', 'embedding_model', 'gpt-4', 'model', 'openai/gpt-4.1', 'parameters', 'provider', 'response_type', 'scope', 'snsapi_base', 'snsapi_userinfo', 'user_detail_url', 'userinfo_url', '企业微信', '企业微信 OAuth 配置验证通过', '微信', '微信 OAuth 配置验证通过', '未配置微信或企业微信 OAuth 登录']

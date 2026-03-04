@@ -1,0 +1,67 @@
+{
+  "appName": "QueryWeaver",
+  "tagline": "Graph-Driven Text-to-SQL Tool",
+  "changeLanguage": "Change Language",
+  "buttons": {
+    "connect": "Connect Database",
+    "upload": "Upload Schema",
+    "refresh": "Refresh Schema",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "submit": "Submit",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "status": {
+    "connected": "Connected: {{name}}",
+    "noDatabase": "No Database Selected",
+    "loading": "Loading...",
+    "processing": "Processing...",
+    "success": "Success",
+    "error": "Error",
+    "refreshing": "Refreshing...",
+    "waitForQuery": "Wait for query to complete",
+    "selectDatabaseFirst": "Select a database first"
+  },
+  "placeholders": {
+    "search": "Search...",
+    "query": "Enter your question...",
+    "selectDatabase": "Select Database",
+    "enterUrl": "Enter Connection URL"
+  },
+  "theme": {
+    "toggleTheme": "Toggle Theme",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode"
+  },
+  "header": {
+    "selectDatabase": "Select Database",
+    "uploadSchema": "Upload Schema",
+    "connectDatabase": "Connect Database",
+    "noDatabasesConnected": "No databases connected",
+    "uploadSchemaComingSoon": "Upload schema feature coming soon",
+    "viewOnGitHub": "View QueryWeaver on GitHub"
+  },
+  "sidebar": {
+    "toggleSidebar": "Toggle Sidebar",
+    "schema": "Schema",
+    "settings": "Settings",
+    "documentation": "Documentation",
+    "support": "Support"
+  },
+  "settings": {
+    "title": "Query Settings",
+    "description": "Define custom rules and specifications for SQL generation. These rules will be applied to all your queries.",
+    "rulesLabel": "User Rules & Specifications",
+    "placeholder": "Example rules:\n- Always use ISO date format (YYYY-MM-DD)\n- Limit results to 100 rows unless specified\n- Always include ORDER BY for consistent results\n- Use LEFT JOIN instead of INNER JOIN for optional relationships\n- Add comments to complex queries",
+    "charactersCount": "{{count}} characters",
+    "tip": "Tip",
+    "tipDescription": "These rules help the AI understand your preferences and constraints when generating SQL queries. You can specify formatting preferences, business rules, or technical requirements.",
+    "clearRules": "Clear Rules",
+    "saveRules": "Save Rules"
+  }
+}

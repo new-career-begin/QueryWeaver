@@ -2,9 +2,8 @@
 import json
 from typing import Dict, List, Optional, TypedDict
 
-from litellm import completion, batch_completion
-
 from api.config import Config
+from api.llm_utils import call_batch_completion, call_completion_sync
 
 
 class ForeignKeyInfo(TypedDict):
@@ -81,8 +80,14 @@ def create_combined_description(  # pylint: disable=too-many-locals
         messages_list.append(messages)
         table_keys.append(table_name)
 
+    # 使用同步批量调用（因为此函数不是异步的）
+    # 注意：这里使用同步方式，未来可以考虑改为异步
     for batch_start in range(0, len(messages_list), batch_size):
         batch_messages = messages_list[batch_start : batch_start + batch_size]
+        
+        # 使用 LiteLLM 的 batch_completion（保持同步）
+        # TODO: 未来可以改为异步版本以支持重试机制
+        from litellm import batch_completion
         response = batch_completion(
             model=Config.COMPLETION_MODEL,
             messages=batch_messages,
@@ -148,8 +153,9 @@ def generate_db_description(
         f"{tables_formatted}.\n\nDescription:"
     )
 
-    response = completion(
-        model=Config.COMPLETION_MODEL,
+    # 使用同步调用（因为此函数不是异步的）
+    # 注意：这里使用同步方式，未来可以考虑改为异步
+    response = call_completion_sync(
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt},

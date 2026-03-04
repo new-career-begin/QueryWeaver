@@ -1,0 +1,67 @@
+{
+  "appName": "QueryWeaver",
+  "tagline": "图驱动的 Text-to-SQL 工具",
+  "changeLanguage": "切换语言",
+  "buttons": {
+    "connect": "连接数据库",
+    "upload": "上传模式",
+    "refresh": "刷新模式",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "confirm": "确认",
+    "submit": "提交",
+    "signIn": "登录",
+    "signOut": "退出登录"
+  },
+  "status": {
+    "connected": "已连接: {{name}}",
+    "noDatabase": "未选择数据库",
+    "loading": "加载中...",
+    "processing": "处理中...",
+    "success": "成功",
+    "error": "错误",
+    "refreshing": "刷新中...",
+    "waitForQuery": "等待查询完成",
+    "selectDatabaseFirst": "请先选择数据库"
+  },
+  "placeholders": {
+    "search": "搜索...",
+    "query": "输入您的问题...",
+    "selectDatabase": "选择数据库",
+    "enterUrl": "输入连接 URL"
+  },
+  "theme": {
+    "toggleTheme": "切换主题",
+    "switchToLight": "切换到亮色模式",
+    "switchToDark": "切换到暗色模式"
+  },
+  "header": {
+    "selectDatabase": "选择数据库",
+    "uploadSchema": "上传模式",
+    "connectDatabase": "连接数据库",
+    "noDatabasesConnected": "未连接数据库",
+    "uploadSchemaComingSoon": "上传模式功能即将推出",
+    "viewOnGitHub": "在 GitHub 上查看 QueryWeaver"
+  },
+  "sidebar": {
+    "toggleSidebar": "切换侧边栏",
+    "schema": "模式",
+    "settings": "设置",
+    "documentation": "文档",
+    "support": "支持"
+  },
+  "settings": {
+    "title": "查询设置",
+    "description": "定义 SQL 生成的自定义规则和规范。这些规则将应用于您的所有查询。",
+    "rulesLabel": "用户规则和规范",
+    "placeholder": "示例规则:\n- 始终使用 ISO 日期格式 (YYYY-MM-DD)\n- 除非指定，否则将结果限制为 100 行\n- 始终包含 ORDER BY 以获得一致的结果\n- 对于可选关系使用 LEFT JOIN 而不是 INNER JOIN\n- 为复杂查询添加注释",
+    "charactersCount": "{{count}} 个字符",
+    "tip": "提示",
+    "tipDescription": "这些规则帮助 AI 理解您在生成 SQL 查询时的偏好和约束。您可以指定格式偏好、业务规则或技术要求。",
+    "clearRules": "清除规则",
+    "saveRules": "保存规则"
+  }
+}

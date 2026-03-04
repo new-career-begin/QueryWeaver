@@ -1,7 +1,7 @@
 """Follow-up agent for generating helpful questions when queries fail or are off-topic."""
 
-from litellm import completion
 from api.config import Config
+from api.llm_utils import call_completion_sync
 from .utils import BaseAgent
 
 
@@ -70,8 +70,8 @@ class FollowUpAgent(BaseAgent):  # pylint: disable=too-few-public-methods
         )
 
         try:
-            completion_result = completion(
-                model=Config.COMPLETION_MODEL,
+            # 使用同步调用（此方法不是异步的）
+            completion_result = call_completion_sync(
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.9
             )

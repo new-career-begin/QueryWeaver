@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\retry_handler.py
+# hypothesis_version: 6.151.9
+
+[1.0, 2.0, '401', '429', '503', 'T', 'api_call_error', 'attempt', 'authentication', 'authentication_error', 'delay', 'error', 'event', 'invalid api key', 'max_retries', 'rate limit', 'rate_limit_retry', 'service unavailable', '服务持续不可用，放弃请求', '达到最大重试次数，速率限制错误', '重试逻辑异常']

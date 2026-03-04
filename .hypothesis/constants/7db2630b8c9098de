@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\loaders\postgres_loader.py
+# hypothesis_version: 6.151.9
+
+['(NOT NULL)', '/', '?', 'ALTER', 'CREATE', 'DELETE', 'DROP', 'INSERT', 'NO', 'NONE', 'RENAME', 'TRUNCATE', 'UPDATE', '^\\s*ALTER\\s+TABLE', '^\\s*CREATE\\s+INDEX', '^\\s*CREATE\\s+SCHEMA', '^\\s*CREATE\\s+TABLE', '^\\s*CREATE\\s+VIEW', '^\\s*DROP\\s+INDEX', '^\\s*DROP\\s+SCHEMA', '^\\s*DROP\\s+TABLE', '^\\s*DROP\\s+VIEW', '^\\s*RENAME\\s+TABLE', '^\\s*TRUNCATE\\s+TABLE', '_', 'affected_rows', 'col_descriptions', 'column', 'columns', 'conn', 'constraint_name', 'default', 'description', 'foreign_keys', 'from', 'key', 'note', 'null', 'operation', 'referenced_column', 'referenced_table', 'sample_values', 'source_column', 'status', 'success', 'target_column', 'to', 'type', 'utf-8']

@@ -1,0 +1,53 @@
+{
+  "interface": {
+    "placeholder": "Ask me anything about your database...",
+    "processing": "Processing your query...",
+    "poweredBy": "Powered by",
+    "sendQuery": "Send query"
+  },
+  "copyQuery": {
+    "copy": "Copy query",
+    "copied": "Copied!"
+  },
+  "suggestions": {
+    "showCustomers": "Show me five customers",
+    "topCustomers": "Show me the top customers by revenue",
+    "pendingOrders": "What are the pending orders?"
+  },
+  "messages": {
+    "queryComplete": "Query Complete",
+    "querySuccess": "Successfully processed your database query!",
+    "queryFailed": "Query Failed",
+    "noDatabase": "No Database Available",
+    "noDatabaseDescription": "Please upload a database schema or start the QueryWeaver backend to use a real database.",
+    "operationCancelled": "Operation Cancelled",
+    "operationCancelledDescription": "Destructive SQL query was not executed.",
+    "processingQuery": "Processing Query",
+    "analyzingQuestion": "Analyzing your question and generating response...",
+    "executingOperation": "Executing Operation",
+    "processingConfirmedOperation": "Processing your confirmed operation...",
+    "operationComplete": "Operation Complete",
+    "operationSuccess": "Successfully executed the operation!",
+    "operationFailed": "Operation Failed",
+    "operationCancelledShort": "Operation Cancelled",
+    "destructiveNotExecuted": "The destructive operation was not executed."
+  },
+  "steps": {
+    "analyzing": "Analyzing query...",
+    "findingTables": "Finding relevant tables...",
+    "generatingSql": "Generating SQL...",
+    "executing": "Executing query...",
+    "executingOperation": "Executing confirmed operation..."
+  },
+  "results": {
+    "title": "Query Results",
+    "rows": "{{count}} rows",
+    "executionTime": "Execution time: {{time}}ms"
+  },
+  "confirmation": {
+    "title": "Confirm Operation",
+    "message": "This operation will modify the database. Continue?",
+    "confirm": "Confirm Execution",
+    "cancel": "Cancel"
+  }
+}

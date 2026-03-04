@@ -1,8 +1,9 @@
 """Analysis agent for analyzing user queries and generating database analysis."""
 
 from typing import List
-from litellm import completion
 from api.config import Config
+from api.llm_utils import call_completion
+from api.prompt_cache import get_prompt_cache, PromptCache
 from .utils import BaseAgent, parse_response
 
 
@@ -38,8 +39,9 @@ class AnalysisAgent(BaseAgent):
             instructions, memory_context, database_type, user_rules_spec
         )
         self.messages.append({"role": "user", "content": prompt})
-        completion_result = completion(
-            model=Config.COMPLETION_MODEL,
+        
+        # 使用统一的 LLM 调用接口（异步）
+        completion_result = await call_completion(
             messages=self.messages,
             temperature=0,
         )
@@ -385,3 +387,44 @@ class AnalysisAgent(BaseAgent):
             Again: OUTPUT ONLY ONE VALID JSON OBJECT AND NOTHING ELSE (no markdown fences, no SQL outside JSON, no query results, no debug text).
 """  # pylint: disable=line-too-long
         return prompt
+
+
+# Prompt 缓存辅助函数
+def get_cached_analysis_prompt_template(
+    database_type: str,
+    has_instructions: bool,
+    has_user_rules: bool,
+    has_memory: bool
+) -> str:
+    """
+    获取缓存的 Analysis Prompt 模板
+    
+    使用 Prompt 缓存减少重复构建开销
+    
+    Args:
+        database_type: 数据库类型
+        has_instructions: 是否有自定义指令
+        has_user_rules: 是否有用户规则
+        has_memory: 是否有记忆上下文
+        
+    Returns:
+        Prompt 模板字符串
+    """
+    from api.prompt_cache import get_prompt_cache, PromptCache
+    
+    cache = get_prompt_cache()
+    cache_key = PromptCache.generate_cache_key(
+        template_type='analysis',
+        database_type=database_type or 'unknown',
+        has_instructions=has_instructions,
+        has_user_rules=has_user_rules,
+        has_memory=has_memory
+    )
+    
+    # 尝试从缓存获取
+    cached_template = cache.get(cache_key)
+    if cached_template:
+        return cached_template
+    
+    # 构建模板（这里返回 None，实际使用时在 _build_prompt 中构建）
+    return None

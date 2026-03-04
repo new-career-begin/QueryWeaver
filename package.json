@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "queryweaver-app": "file:app"
+    "queryweaver-app": "file:app",
+    "tsc": "^2.0.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

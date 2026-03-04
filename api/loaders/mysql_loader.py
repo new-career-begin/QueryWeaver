@@ -188,8 +188,21 @@ class MySQLLoader(BaseLoader):
 
             # Load data into graph
             yield True, "Loading data into graph..."
-            await load_to_graph(f"{prefix}_{db_name}", entities, relationships,
-                         db_name=db_name, db_url=connection_url)
+            # 从 base64 编码的 user_id 解码出 user_email
+            import base64
+            try:
+                user_email = base64.b64decode(prefix).decode('utf-8')
+            except Exception:  # pylint: disable=broad-exception-caught
+                user_email = None
+            
+            await load_to_graph(
+                f"{prefix}_{db_name}", 
+                entities, 
+                relationships,
+                db_name=db_name, 
+                db_url=connection_url,
+                user_email=user_email
+            )
 
             yield True, (f"MySQL schema loaded successfully. "
                          f"Found {len(entities)} tables.")

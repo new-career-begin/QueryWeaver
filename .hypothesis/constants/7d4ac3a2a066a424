@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\oobabooga\chat\transformation.py
+# hypothesis_version: 6.151.9
+
+['Authorization', 'accept', 'application/json', 'choices', 'complete_input_dict', 'completion_tokens', 'content', 'content-type', 'error', 'message', 'prompt_tokens', 'total_tokens', 'usage']

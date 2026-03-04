@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
@@ -10,6 +11,7 @@ interface QueryInputProps {
 }
 
 const QueryInput = ({ onSubmit, placeholder = "Ask me anything about your database...", disabled = false }: QueryInputProps) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,7 +43,7 @@ const QueryInput = ({ onSubmit, placeholder = "Ask me anything about your databa
         size="icon"
         className="absolute right-2 bottom-2 bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!query.trim() || disabled}
-        aria-label="Send query"
+        aria-label={t('chat.interface.sendQuery')}
         data-testid="send-query-btn"
       >
         <Send className="w-4 h-4" />

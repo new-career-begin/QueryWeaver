@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\custom_httpx\aiohttp_transport.py
+# hypothesis_version: 6.151.9
+
+[1024, '://', 'Connection closed', 'False', 'Session is closed', '_client_factory', '_loop', 'all', 'allow_redirects', 'auto_decompress', 'connect', 'data', 'headers', 'method', 'pool', 'proxy', 'read', 'server_hostname', 'sni_hostname', 'ssl', 'timeout', 'transfer-encoding', 'url']

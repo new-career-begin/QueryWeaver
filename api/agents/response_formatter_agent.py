@@ -1,8 +1,8 @@
 """Response formatter agent for generating user-readable responses from SQL query results."""
 
 from typing import List, Dict
-from litellm import completion
 from api.config import Config
+from api.llm_utils import call_completion_sync
 
 
 RESPONSE_FORMATTER_PROMPT = """
@@ -64,8 +64,8 @@ class ResponseFormatterAgent:
 
         messages = [{"role": "user", "content": prompt}]
 
-        completion_result = completion(
-            model=Config.COMPLETION_MODEL,
+        # 使用同步调用（此方法不是异步的）
+        completion_result = call_completion_sync(
             messages=messages,
             temperature=0.3,  # Slightly higher temperature for more natural responses
             top_p=1,

@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\router_strategy\tag_based_routing.py
+# hypothesis_version: 6.151.9
+
+['default', 'litellm_metadata', 'litellm_params', 'metadata', 'request metadata: %s', 'tags']

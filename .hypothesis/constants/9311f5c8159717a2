@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\openai_like\common_utils.py
+# hypothesis_version: 6.151.9
+
+[400, 'Authorization', 'Bearer {}', 'Content-Type', 'POST', 'application/json', 'chat_completions', 'embeddings', '{}/chat/completions', '{}/embeddings']

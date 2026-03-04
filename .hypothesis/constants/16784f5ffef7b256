@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\llm_utils.py
+# hypothesis_version: 6.151.9
+
+[0.7, 1.0, 2.0, 'LLM 调用开始', 'LLM 调用成功', 'batch_size', 'completion_tokens', 'error_message', 'error_type', 'event', 'execution_time', 'llm_batch_call_error', 'llm_batch_call_start', 'llm_call_error', 'llm_call_start', 'llm_call_success', 'llm_sync_call_error', 'llm_sync_call_start', 'max_tokens', 'message_count', 'messages', 'model', 'prompt_tokens', 'response_format', 'temperature', 'total_tokens', 'usage', 'user_email', '同步 LLM 调用开始', '同步 LLM 调用成功', '批量 LLM 调用开始', '批量 LLM 调用成功']

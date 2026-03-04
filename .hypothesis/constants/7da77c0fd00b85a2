@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\anthropic\experimental_pass_through\responses_adapters\handler.py
+# hypothesis_version: 6.151.9
+
+['anthropic_messages', 'call_type', 'context_management', 'litellm_logging_obj', 'max_tokens', 'messages', 'metadata', 'model', 'output_config', 'output_format', 'stream', 'system', 'temperature', 'thinking', 'tool_choice', 'tools', 'top_p']

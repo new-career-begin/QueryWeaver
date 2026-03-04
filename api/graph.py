@@ -6,11 +6,11 @@ import logging
 from itertools import combinations
 from typing import Any, Dict, List
 
-from litellm import completion
 from pydantic import BaseModel
 
 from api.config import Config
 from api.extensions import db
+from api.llm_utils import call_completion
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 # pylint: disable=broad-exception-caught
@@ -298,9 +298,8 @@ async def find( # pylint: disable=too-many-locals
 
     logging.info("Calling LLM to find relevant tables/columns for query")
 
-    completion_result = completion(
-        model=Config.COMPLETION_MODEL,
-        response_format=Descriptions,
+    # 使用统一的 LLM 调用接口，支持用户配置和重试
+    completion_result = await call_completion(
         messages=[
             {
                 "role": "system",
@@ -316,6 +315,7 @@ async def find( # pylint: disable=too-many-locals
                 })
             },
         ],
+        response_format=Descriptions,
         temperature=0,
     )
 

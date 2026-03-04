@@ -547,7 +547,7 @@ const Index = () => {
                 className="bg-card border-border text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed p-2"
                 onClick={handleRefreshSchema}
                 disabled={!selectedGraph || isRefreshingSchema || isChatProcessing}
-                title={selectedGraph ? (isRefreshingSchema ? 'Refreshing schema...' : isChatProcessing ? 'Wait for query to complete' : 'Refresh Schema') : "Select a database first"}
+                title={selectedGraph ? (isRefreshingSchema ? t('common.status.refreshing') : isChatProcessing ? t('common.status.waitForQuery') : t('common.buttons.refresh')) : t('common.status.selectDatabaseFirst')}
                 data-testid="refresh-schema-btn"
               >
                 {isRefreshingSchema ? <LoadingSpinner size="sm" /> : <RefreshCw className="w-4 h-4" />}
@@ -558,7 +558,7 @@ const Index = () => {
                     variant="outline"
                     className="bg-card border-border text-muted-foreground hover:bg-muted flex-1 md:flex-initial"
                     disabled={isRefreshingSchema || isChatProcessing}
-                    title={isRefreshingSchema ? 'Refreshing schema...' : isChatProcessing ? 'Wait for query to complete' : undefined}
+                    title={isRefreshingSchema ? t('common.status.refreshing') : isChatProcessing ? t('common.status.waitForQuery') : undefined}
                     data-testid="database-selector-trigger"
                   >
                     <span className="truncate">{selectedGraph?.name || 'Select Database'}</span>
@@ -584,7 +584,7 @@ const Index = () => {
                           }`}
                           onClick={(e) => { if (isDemo || isRefreshingSchema || isChatProcessing) return; handleDeleteGraph(graph.id, graph.name, e); }}
                           disabled={isDemo || isRefreshingSchema}
-                          title={isDemo ? 'Demo databases cannot be deleted' : (isRefreshingSchema ? 'Refreshing schema...' : `Delete ${graph.name}`)}
+                          title={isDemo ? t('database.messages.demoDatabasesCannotBeDeleted') : (isRefreshingSchema ? t('common.status.refreshing') : t('database.messages.deleteDatabase', { name: graph.name }))}
                           data-testid={`delete-graph-btn-${graph.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -604,7 +604,7 @@ const Index = () => {
                 className="bg-purple-600 border-purple-500 text-white hover:bg-purple-700 hover:border-purple-600 hover:text-white flex-1 md:flex-initial shadow-sm hover:shadow-md transition-all"
                 onClick={handleConnectDatabase}
                 disabled={isRefreshingSchema || isChatProcessing}
-                title={isRefreshingSchema ? 'Refreshing schema...' : isChatProcessing ? 'Wait for query to complete' : undefined}
+                title={isRefreshingSchema ? t('common.status.refreshing') : isChatProcessing ? t('common.status.waitForQuery') : undefined}
                 data-testid="connect-database-btn"
               >
                   <span className="hidden sm:inline">Connect to Database</span>
@@ -614,7 +614,7 @@ const Index = () => {
                 variant="outline"
                 className="bg-card border-border text-muted-foreground opacity-60 cursor-not-allowed hidden md:flex"
                 disabled
-                title="Upload schema feature coming soon"
+                title={t('common.header.uploadSchemaComingSoon')}
                 onClick={(e) => e.preventDefault()}
                 data-testid="upload-schema-btn"
               >

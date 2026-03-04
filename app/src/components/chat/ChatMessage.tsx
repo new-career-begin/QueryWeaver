@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Database, Search, Code, MessageSquare, AlertTriangle, Copy, Check } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +37,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ type, content, steps, queryData, analysisInfo, confirmationData, progress, user, onConfirm, onCancel }: ChatMessageProps) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopyQuery = async () => {
@@ -175,7 +177,8 @@ const ChatMessage = ({ type, content, steps, queryData, analysisInfo, confirmati
                       size="sm"
                       onClick={handleCopyQuery}
                       className="absolute top-2 right-2 z-10 h-8 w-8 p-0 hover:bg-muted"
-                      title={copied ? "Copied!" : "Copy query"}
+                      title={copied ? t('chat.copyQuery.copied') : t('chat.copyQuery.copy')}
+                      aria-label={copied ? t('chat.copyQuery.copied') : t('chat.copyQuery.copy')}
                     >
                       {copied ? (
                         <Check className="w-4 h-4 text-success" />

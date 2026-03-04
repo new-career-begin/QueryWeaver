@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\loaders\graph_loader.py
+# hypothesis_version: 6.151.9
+
+[100, 128, 4096, 'TBD', 'col_descriptions', 'col_name', 'columns', 'db_name', 'description', 'embedding', 'foreign_keys', 'from', 'key', 'note', 'null', 'nullable', 'rel_name', 'sample_values', 'size', 'source_col', 'source_column', 'source_table', 'table_name', 'target_col', 'target_column', 'target_table', 'to', 'type', 'unknown', 'url']

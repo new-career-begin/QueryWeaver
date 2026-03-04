@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\connection_pool.py
+# hypothesis_version: 6.151.9
+
+[30.0, 100, 'HTTP 连接池初始化成功', 'HTTPS_PROXY', 'HTTP_MAX_OVERFLOW', 'HTTP_POOL_SIZE', 'HTTP_PROXY', 'HTTP_TIMEOUT', 'all_clients_closed', 'async_client_closed', 'async_client_type', 'connection_pool_init', 'error', 'event', 'has_http_proxy', 'has_https_proxy', 'http_proxy', 'https_proxy', 'keepalive_timeout', 'max_overflow', 'pool_size', 'proxy_configured', 'sync_client_closed', 'sync_client_type', 'timeout', '代理配置已检测', '初始化 HTTP 连接池', '同步 HTTP 客户端已关闭', '异步 HTTP 客户端已关闭', '所有 HTTP 客户端已关闭']

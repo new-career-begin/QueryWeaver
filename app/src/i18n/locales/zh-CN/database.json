@@ -1,0 +1,53 @@
+{
+  "modal": {
+    "title": "连接到数据库",
+    "description": "使用连接 URL 或手动输入连接到 PostgreSQL 或 MySQL 数据库。",
+    "privacyPolicy": "隐私政策"
+  },
+  "fields": {
+    "databaseType": "数据库类型",
+    "connectionUrl": "连接 URL",
+    "host": "主机",
+    "port": "端口",
+    "database": "数据库名称",
+    "username": "用户名",
+    "password": "密码",
+    "selectDatabase": "-- 选择数据库 --",
+    "enterConnectionString": "输入您的数据库连接字符串"
+  },
+  "types": {
+    "postgresql": "PostgreSQL",
+    "mysql": "MySQL"
+  },
+  "modes": {
+    "url": "连接 URL",
+    "manual": "手动输入"
+  },
+  "messages": {
+    "connecting": "正在连接...",
+    "connected": "连接成功",
+    "connectionFailed": "连接失败",
+    "deleteConfirm": "确定要删除数据库 \"{{name}}\" 吗？",
+    "deleteSuccess": "成功删除 \"{{name}}\"",
+    "deleteFailed": "删除失败",
+    "refreshSuccess": "模式刷新成功",
+    "refreshFailed": "模式刷新失败",
+    "noDatabaseSelected": "请先选择数据库",
+    "missingFields": "请填写所有必填字段",
+    "missingInfo": "缺少信息",
+    "selectDatabaseAndUrl": "请选择数据库类型并输入连接 URL",
+    "fillAllFields": "请填写所有必填字段",
+    "connectedSuccessfully": "连接成功",
+    "databaseConnected": "数据库连接已建立！",
+    "connectionError": "连接错误",
+    "demoDatabasesCannotBeDeleted": "演示数据库无法删除",
+    "deleteDatabase": "删除 {{name}}"
+  },
+  "steps": {
+    "validating": "正在验证连接信息...",
+    "connecting": "正在连接到数据库...",
+    "loadingSchema": "正在加载数据库模式...",
+    "buildingGraph": "正在构建关系图...",
+    "complete": "连接完成"
+  }
+}

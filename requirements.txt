@@ -28,6 +28,7 @@ fastmcp>=2.13.1
 
 # 开发依赖（可选）
 # pytest~=8.4.2
+# hypothesis~=6.122.3  # 属性测试框架
 # pylint~=4.0.3
 # playwright~=1.57.0
 # pytest-playwright~=0.7.1

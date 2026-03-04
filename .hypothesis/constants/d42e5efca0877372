@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\core\schema_loader.py
+# hypothesis_version: 6.151.9
+
+['Invalid URL format', 'dm', 'dm://', 'error', 'final_result', 'kingbase', 'kingbase://', 'message', 'mysql', 'mysql://', 'postgres://', 'postgresql', 'postgresql://', 'reasoning_step', 'success', 'type']

@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\config_manager.py
+# hypothesis_version: 6.151.9
+
+[500, 1000, '***', '401', '429', 'API Key 不能为空', 'API Key 加密成功', 'API Key 必须是字符串', 'API Key 无效，请检查配置', 'API Key 格式无效', 'API Key 解密成功', 'API Key 验证通过', 'Hello', 'LLM 配置管理器初始化成功', 'Organizations', 'Z', '^[a-fA-F0-9]{32}$', '^sk-[A-Za-z0-9_-]+$', 'api_base', 'api_key', 'api_key_encrypted', 'authentication', 'azure', 'azure/gpt-35-turbo', 'base_url', 'completion_model', 'config', 'content', 'created_at', 'deepseek', 'email', 'emails', 'errors', 'failed', 'http://', 'https://', 'latency', 'max_tokens', 'message', 'messages', 'model', 'openai', 'openai/gpt-3.5-turbo', 'provider', 'rate limit', 'role', 'sk-', 'success', 'timeout', 'total', 'updated', 'updated_at', 'user', 'utf-8', '加密密钥加载成功', '加密的 API Key 不能为空', '已生成默认加密密钥（仅用于开发环境）', '开始密钥轮换操作', '请求过于频繁，请稍后再试', '连接成功', '连接超时，请检查网络或 API 端点', '配置验证通过']

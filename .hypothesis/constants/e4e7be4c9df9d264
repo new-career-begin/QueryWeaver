@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\ocr\main.py
+# hypothesis_version: 6.151.9
+
+['.bmp', '.gif', '.jpeg', '.jpg', '.pdf', '.png', '.tif', '.tiff', '.webp', '^[\\w.+-]+/[\\w.+-]+$', 'aocr', 'api_base', 'application/pdf', 'document_url', 'file', 'image/', 'image/bmp', 'image/gif', 'image/jpeg', 'image/png', 'image/tiff', 'image/webp', 'image_url', 'litellm_call_id', 'litellm_logging_obj', 'mime_type', 'name', 'rb', 'read', 'type', 'utf-8']

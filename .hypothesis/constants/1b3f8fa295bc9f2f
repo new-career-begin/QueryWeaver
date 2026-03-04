@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\auth\token_cache.py
+# hypothesis_version: 6.151.9
+
+[300, 'TokenCache 初始化完成', 'created_at', 'expire_time', 'expired_count', 'token', 'total_count', 'valid_count']

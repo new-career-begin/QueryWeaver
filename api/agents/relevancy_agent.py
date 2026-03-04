@@ -1,8 +1,8 @@
 """Relevancy agent for determining relevancy of queries to database schema."""
 
 import json
-from litellm import completion
 from api.config import Config
+from api.llm_utils import call_completion
 from .utils import BaseAgent, parse_response
 
 
@@ -82,8 +82,9 @@ class RelevancyAgent(BaseAgent):
                 ),
             }
         )
-        completion_result = completion(
-            model=Config.COMPLETION_MODEL,
+        
+        # 使用统一的 LLM 调用接口
+        completion_result = await call_completion(
             messages=self.messages,
             temperature=0,
         )

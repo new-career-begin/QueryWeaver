@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\performance_monitor.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.95, 5.0, 10.0, 100, 1000, 'event', 'failed_calls', 'global', 'high_p95', 'max_response_time', 'median_response_time', 'min_response_time', 'model', 'p95_response_time', 'performance_warning', 'response_time', 'slow_single_call', 'statistics', 'success_rate', 'successful_calls', 'threshold', 'total_calls', 'user_email', 'warning_type', '已重置所有性能指标', '性能监控器已初始化']

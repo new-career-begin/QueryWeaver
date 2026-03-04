@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal = ({ open, onClose, initialRules = "", onSave }: SettingsModalProps) => {
+  const { t } = useTranslation();
   const [rules, setRules] = useState(initialRules);
 
   // Sync with prop changes
@@ -39,38 +41,32 @@ const SettingsModal = ({ open, onClose, initialRules = "", onSave }: SettingsMod
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] bg-gray-900 text-white border-gray-700">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Query Settings</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">{t('common.settings.title')}</DialogTitle>
           <DialogDescription className="text-gray-400">
-            Define custom rules and specifications for SQL generation. These rules will be applied to all your queries.
+            {t('common.settings.description')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="rules" className="text-sm font-medium text-gray-200">
-              User Rules & Specifications
+              {t('common.settings.rulesLabel')}
             </Label>
             <Textarea
               id="rules"
-              placeholder={`Example rules:
-- Always use ISO date format (YYYY-MM-DD)
-- Limit results to 100 rows unless specified
-- Always include ORDER BY for consistent results
-- Use LEFT JOIN instead of INNER JOIN for optional relationships
-- Add comments to complex queries`}
+              placeholder={t('common.settings.placeholder')}
               value={rules}
               onChange={(e) => setRules(e.target.value)}
               className="min-h-[300px] bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
             />
             <p className="text-xs text-gray-500">
-              {rules.length} characters
+              {t('common.settings.charactersCount', { count: rules.length })}
             </p>
           </div>
 
           <div className="bg-blue-900/20 border border-blue-800/30 rounded-lg p-3">
             <p className="text-xs text-blue-300">
-              <strong>💡 Tip:</strong> These rules help the AI understand your preferences and constraints when generating SQL queries.
-              You can specify formatting preferences, business rules, or technical requirements.
+              <strong>💡 {t('common.settings.tip')}:</strong> {t('common.settings.tipDescription')}
             </p>
           </div>
         </div>
@@ -82,7 +78,7 @@ const SettingsModal = ({ open, onClose, initialRules = "", onSave }: SettingsMod
             className="border-gray-700 hover:bg-gray-800 hover:text-white"
           >
             <X className="w-4 h-4 mr-2" />
-            Clear Rules
+            {t('common.settings.clearRules')}
           </Button>
           <div className="flex gap-2">
             <Button
@@ -90,14 +86,14 @@ const SettingsModal = ({ open, onClose, initialRules = "", onSave }: SettingsMod
               onClick={onClose}
               className="border-gray-700 hover:bg-gray-800 hover:text-white"
             >
-              Cancel
+              {t('common.buttons.cancel')}
             </Button>
             <Button
               onClick={handleSave}
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Save className="w-4 h-4 mr-2" />
-              Save Rules
+              {t('common.settings.saveRules')}
             </Button>
           </div>
         </div>

@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\integrations\datadog\datadog_metrics.py
+# hypothesis_version: 6.151.9
+
+[1.0, '200', '500', 'Content-Encoding', 'Content-Type', 'DD-API-KEY', 'DD-APPLICATION-KEY', 'DD_API_KEY', 'DD_APP_KEY', 'DD_SITE', 'api_call_start_time', 'application/json', 'custom_llm_provider', 'datadoghq.com', 'end_time', 'env:health_check', 'error_code', 'error_information', 'flush_interval', 'flush_lock', 'gzip', 'healthy', 'interval', 'litellm.health_check', 'metadata', 'metric', 'model', 'model_group', 'points', 'series', 'start_time', 'tags', 'team_alias', 'team_id', 'timestamp', 'type', 'unhealthy', 'user_api_key_team_id', 'utf-8', 'value']

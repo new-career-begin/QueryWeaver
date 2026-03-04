@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { useDatabase } from "@/contexts/DatabaseContext";
@@ -51,6 +52,7 @@ const ChatInterface = ({
   useMemory = true,
   useRulesFromDatabase = true
 }: ChatInterfaceProps) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { selectedGraph } = useDatabase();
   const { messages, setMessages, conversationHistory, isProcessing, setIsProcessing } = useChat();
@@ -81,9 +83,9 @@ const ChatInterface = ({
   const { user } = useAuth();
 
   const suggestions = [
-    "Show me five customers",
-    "Show me the top customers by revenue", 
-    "What are the pending orders?"
+    t('chat.suggestions.showCustomers'),
+    t('chat.suggestions.topCustomers'), 
+    t('chat.suggestions.pendingOrders')
   ];
 
   // Scroll to bottom whenever messages change
@@ -97,24 +99,24 @@ const ChatInterface = ({
   }, [isProcessing, onProcessingChange]);
 
   const handleSendMessage = async (query: string) => {
-  if (isProcessing || disabled) return; // Prevent multiple submissions or when disabled by parent
+  if (isProcessing || disabled) return; // 防止多次提交或父组件禁用时提交
 
     if (!selectedGraph) {
       toast({
-        title: "No Database Available",
-        description: "Please upload a database schema first, or start the QueryWeaver backend to use real databases.",
+        title: t('chat.messages.noDatabase'),
+        description: t('chat.messages.noDatabaseDescription'),
         variant: "destructive",
       });
       return;
     }
 
-    // Snapshot history before adding the current user message so the backend
-    // sees only prior turns in `history` and the current query in `query`.
+    // 在添加当前用户消息之前快照历史记录，以便后端
+    // 在 `history` 中只看到之前的对话轮次，在 `query` 中看到当前查询。
     const historySnapshot = [...conversationHistory.current];
 
     setIsProcessing(true);
 
-    // Add user message
+    // 添加用户消息
     const userMessage: ChatMessageData = {
       id: Date.now().toString(),
       type: "user",
@@ -125,13 +127,13 @@ const ChatInterface = ({
     setMessages(prev => [...prev, userMessage]);
     conversationHistory.current.push({ role: 'user', content: query });
     
-    // Scroll to bottom immediately after adding user message
+    // 添加用户消息后立即滚动到底部
     setTimeout(() => scrollToBottom(), 100);
     
-    // Show processing toast
+    // 显示处理中的 toast
     toast({
-      title: "Processing Query",
-      description: "Analyzing your question and generating response...",
+      title: t('chat.messages.processingQuery'),
+      description: t('chat.messages.analyzingQuestion'),
     });
     
     try {
@@ -195,15 +197,15 @@ const ChatInterface = ({
           const followupContent = (message.message || message.content || '').trim();
           finalContent = followupContent;
         } else if (message.type === 'error') {
-          // Handle error
+          // 处理错误
           toast({
-            title: "Query Failed",
+            title: t('chat.messages.queryFailed'),
             description: message.content,
             variant: "destructive",
           });
           finalContent = `Error: ${message.content}`;
         } else if (message.type === 'confirmation' || message.type === 'destructive_confirmation') {
-          // Handle destructive operation confirmation - add inline confirmation message
+          // 处理破坏性操作确认 - 添加内联确认消息
           const confirmationMessage: ChatMessageData = {
             id: `confirm-${Date.now()}`,
             type: 'confirmation',
@@ -219,7 +221,7 @@ const ChatInterface = ({
 
           setMessages(prev => [...prev, confirmationMessage]);
 
-          // Don't set finalContent - we want the confirmation to be standalone
+          // 不设置 finalContent - 我们希望确认消息是独立的
           finalContent = "";
         } else {
           console.warn('Unknown message type received:', message.type, message);
@@ -228,7 +230,7 @@ const ChatInterface = ({
         setTimeout(() => scrollToBottom(), 50);
       }
 
-      // Add SQL query message with analysis info (even if SQL is empty)
+      // 添加 SQL 查询消息和分析信息（即使 SQL 为空）
       if (sqlQuery !== undefined || Object.keys(analysisInfo).length > 0) {
         const sqlMessage: ChatMessageData = {
           id: (Date.now() + 2).toString(),
@@ -240,19 +242,19 @@ const ChatInterface = ({
         setMessages(prev => [...prev, sqlMessage]);
       }
       
-      // Add query results table if available
+      // 如果有查询结果表，则添加
       if (queryResults && queryResults.length > 0) {
         const resultsMessage: ChatMessageData = {
           id: (Date.now() + 3).toString(),
           type: "query-result",
-          content: "Query Results",
+          content: t('chat.results.title'),
           queryData: queryResults,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, resultsMessage]);
       }
       
-      // Add AI final response if we have one
+      // 如果有最终响应，则添加 AI 最终响应
       if (finalContent) {
         const finalResponse: ChatMessageData = {
           id: (Date.now() + 4).toString(),
@@ -265,10 +267,10 @@ const ChatInterface = ({
         conversationHistory.current.push({ role: 'assistant', content: finalContent });
       }
       
-      // Show success toast
+      // 显示成功 toast
       toast({
-        title: "Query Complete",
-        description: "Successfully processed your database query!",
+        title: t('chat.messages.queryComplete'),
+        description: t('chat.messages.querySuccess'),
       });
     } catch (error) {
       console.error('Query failed:', error);
@@ -283,8 +285,8 @@ const ChatInterface = ({
       setMessages(prev => [...prev, errorMessage]);
       
       toast({
-        title: "Query Failed",
-        description: error instanceof Error ? error.message : "Failed to process query",
+        title: t('chat.messages.queryFailed'),
+        description: error instanceof Error ? error.message : t('chat.messages.queryFailed'),
         variant: "destructive",
       });
     } finally {
@@ -296,27 +298,27 @@ const ChatInterface = ({
   const handleConfirmDestructive = async (messageId: string) => {
     if (!selectedGraph) return;
 
-    // Find the confirmation message to get the data
+    // 查找确认消息以获取数据
     const confirmMessage = messages.find(m => m.id === messageId && m.type === 'confirmation');
     if (!confirmMessage?.confirmationData) return;
 
     setIsProcessing(true);
 
-    // Remove the confirmation message and replace with "Executing..." message
+    // 移除确认消息并替换为"正在执行..."消息
     setMessages(prev => prev.filter(m => m.id !== messageId));
 
     const executingMessage: ChatMessageData = {
       id: `executing-${Date.now()}`,
       type: 'ai',
-      content: 'Executing confirmed operation...',
+      content: t('chat.steps.executingOperation'),
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, executingMessage]);
 
-    // Show processing toast
+    // 显示处理中的 toast
     toast({
-      title: "Executing Operation",
-      description: "Processing your confirmed operation...",
+      title: t('chat.messages.executingOperation'),
+      description: t('chat.messages.processingConfirmedOperation'),
     });
 
     try {
@@ -351,10 +353,10 @@ const ChatInterface = ({
           const responseContent = (message.message || message.content || '').trim();
           finalContent = responseContent;
         } else if (message.type === 'error') {
-          // Handle error - backend sends 'message' field, not 'content'
-          let errorMsg = message.message || message.content || 'Unknown error occurred';
+          // 处理错误 - 后端发送 'message' 字段，而不是 'content'
+          let errorMsg = message.message || message.content || t('chat.messages.operationFailed');
 
-          // Clean up common database errors to be more user-friendly
+          // 清理常见的数据库错误，使其更加用户友好
           if (errorMsg.includes('duplicate key value violates unique constraint')) {
             const match = errorMsg.match(/Key \((\w+)\)=\(([^)]+)\)/);
             if (match) {
@@ -373,20 +375,20 @@ const ChatInterface = ({
               errorMsg = 'Required field cannot be empty.';
             }
           } else if (errorMsg.includes('PostgreSQL query execution error:') || errorMsg.includes('MySQL query execution error:')) {
-            // Strip the "PostgreSQL/MySQL query execution error:" prefix
+            // 去除 "PostgreSQL/MySQL query execution error:" 前缀
             errorMsg = errorMsg.replace(/^(PostgreSQL|MySQL) query execution error:\s*/i, '');
-            // Remove technical details after newline
+            // 移除换行后的技术细节
             errorMsg = errorMsg.split('\n')[0];
           }
 
           toast({
-            title: "Operation Failed",
+            title: t('chat.messages.operationFailed'),
             description: errorMsg,
             variant: "destructive",
           });
           finalContent = `${errorMsg}`;
         } else if (message.type === 'schema_refresh') {
-          // Schema refresh notification
+          // 模式刷新通知
           const refreshContent = message.message || message.content || '';
           const refreshMessage: ChatMessageData = {
             id: `refresh-${Date.now()}`,
@@ -400,12 +402,12 @@ const ChatInterface = ({
         setTimeout(() => scrollToBottom(), 50);
       }
 
-      // Add query results table if available
+      // 如果有查询结果表，则添加
       if (queryResults && queryResults.length > 0) {
         const resultsMessage: ChatMessageData = {
           id: (Date.now() + 3).toString(),
           type: "query-result",
-          content: "Query Results",
+          content: t('chat.results.title'),
           queryData: queryResults,
           timestamp: new Date(),
         };
@@ -425,8 +427,8 @@ const ChatInterface = ({
       }
 
       toast({
-        title: "Operation Complete",
-        description: "Successfully executed the operation!",
+        title: t('chat.messages.operationComplete'),
+        description: t('chat.messages.operationSuccess'),
       });
     } catch (error) {
       console.error('Confirmation error:', error);
@@ -441,8 +443,8 @@ const ChatInterface = ({
       setMessages(prev => [...prev, errorMessage]);
 
       toast({
-        title: "Operation Failed",
-        description: error instanceof Error ? error.message : "Failed to execute operation",
+        title: t('chat.messages.operationFailed'),
+        description: error instanceof Error ? error.message : t('chat.messages.operationFailed'),
         variant: "destructive",
       });
     } finally {
@@ -452,7 +454,7 @@ const ChatInterface = ({
   };
 
   const handleCancelDestructive = (messageId: string) => {
-    // Remove the confirmation message and add cancellation message
+    // 移除确认消息并添加取消消息
     setMessages(prev => prev.filter(m => m.id !== messageId));
 
     setMessages(prev => [
@@ -460,14 +462,14 @@ const ChatInterface = ({
       {
         id: `cancel-${Date.now()}`,
         type: 'ai',
-        content: 'Operation cancelled. The destructive SQL query was not executed.',
+        content: t('chat.messages.operationCancelledDescription'),
         timestamp: new Date(),
       }
     ]);
 
     toast({
-      title: "Operation Cancelled",
-      description: "The destructive operation was not executed.",
+      title: t('chat.messages.operationCancelledShort'),
+      description: t('chat.messages.destructiveNotExecuted'),
     });
   };
 
@@ -516,7 +518,7 @@ const ChatInterface = ({
           {/* Query Input */}
           <QueryInput 
             onSubmit={handleSendMessage}
-            placeholder="Ask me anything about your database..."
+            placeholder={t('chat.interface.placeholder')}
             disabled={isProcessing || disabled}
           />
           
@@ -524,14 +526,14 @@ const ChatInterface = ({
           {isProcessing && (
             <div className="flex items-center justify-center gap-2 mt-2" data-testid="processing-query-indicator">
               <LoadingSpinner size="sm" />
-              <span className="text-muted-foreground text-sm">Processing your query...</span>
+              <span className="text-muted-foreground text-sm">{t('chat.interface.processing')}</span>
             </div>
           )}
           
           {/* Footer */}
           <div className="text-center mt-4">
             <p className="text-muted-foreground text-sm">
-              Powered by <a href="https://falkordb.com" target="_blank">FalkorDB</a>
+              {t('chat.interface.poweredBy')} <a href="https://falkordb.com" target="_blank">FalkorDB</a>
             </p>
           </div>
         </div>

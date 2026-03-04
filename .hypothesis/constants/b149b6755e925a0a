@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\logging_config.py
+# hypothesis_version: 6.151.9
+
+['batch_size', 'completion_tokens', 'error_message', 'error_type', 'event', 'exception', 'execution_time', 'level', 'logger', 'max_retries', 'max_tokens', 'message', 'message_count', 'model', 'prompt_tokens', 'retry_attempt', 'stack_info', 'temperature', 'timestamp', 'total_tokens', 'user_email']

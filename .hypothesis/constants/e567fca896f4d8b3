@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\integrations\arize\arize_phoenix_prompt_manager.py
+# hypothesis_version: 6.151.9
+
+['#}', '%}', 'MUSTACHE', 'anthropic', 'arize', 'content', 'description', 'frequency_penalty', 'html', 'max_tokens', 'messages', 'model', 'model_name', 'model_provider', 'openai', 'presence_penalty', 'role', 'temperature', 'template', 'template_format', 'template_type', 'text', 'top_p', 'type', 'user', 'xml', '{#', '{%', '{{', '}}']

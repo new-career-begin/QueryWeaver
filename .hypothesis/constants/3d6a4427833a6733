@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\llms\deprecated_providers\aleph_alpha.py
+# hypothesis_version: 6.151.9
+
+['Authorization', 'POST', '__', 'accept', 'application/json', 'choices', 'complete_input_dict', 'completion', 'completions', 'content', 'content-type', 'control', 'error', 'finish_reason', 'message', 'model', 'prompt', 'role', 'self', 'stream', 'system', 'usage', 'user']

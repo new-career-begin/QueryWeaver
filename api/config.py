@@ -6,7 +6,7 @@ This module contains the configuration for the text2sql module.
 import os
 import logging
 import dataclasses
-from typing import Union
+from typing import Union, Optional, Dict, Any
 from litellm import embedding
 
 # Configure litellm logging to prevent sensitive data leakage
@@ -77,6 +77,228 @@ class Config:
     SHORT_MEMORY_LENGTH = 5  # Maximum number of questions to keep in short-term memory
 
     EMBEDDING_MODEL = EmbeddingsModel(model_name=EMBEDDING_MODEL_NAME)
+    
+    # DeepSeek 默认配置
+    DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+    DEEPSEEK_COMPLETION_MODEL = "deepseek-chat"
+    DEEPSEEK_EMBEDDING_MODEL = "text-embedding-ada-002"  # 暂用 OpenAI
+    
+    @classmethod
+    async def load_user_config(cls, user_email: str) -> 'UserConfig':
+        """
+        加载用户特定的配置
+        
+        从 FalkorDB Organizations 图数据库中加载用户的 LLM 配置。
+        如果用户没有自定义配置，返回 None。
+        
+        Args:
+            user_email: 用户邮箱
+            
+        Returns:
+            UserConfig: 用户配置实例，如果不存在则返回 None
+            
+        Raises:
+            Exception: 配置加载失败时抛出
+        """
+        from api.config_manager import LLMConfigManager
+        
+        try:
+            config_manager = LLMConfigManager()
+            config_data = await config_manager.get_user_config(user_email)
+            
+            if config_data:
+                return UserConfig(user_email, config_data)
+            return None
+            
+        except Exception as e:
+            logging.error(f"加载用户配置失败: {str(e)}")
+            return None
+    
+    @classmethod
+    async def get_completion_model(cls, user_email: str = None) -> str:
+        """
+        获取对话模型名称
+        
+        按优先级获取模型：用户配置 > 环境变量 > 默认值
+        
+        Args:
+            user_email: 可选的用户邮箱，用于加载用户配置
+            
+        Returns:
+            str: 模型名称（格式：provider/model-name）
+        """
+        # 1. 尝试加载用户配置（最高优先级）
+        if user_email:
+            try:
+                user_config = await cls.load_user_config(user_email)
+                if user_config and user_config.completion_model:
+                    return user_config.get_completion_model_name()
+            except Exception as e:
+                logging.warning(f"加载用户配置失败，使用默认配置: {str(e)}")
+        
+        # 2. 尝试从环境变量加载
+        if os.getenv("DEEPSEEK_API_KEY"):
+            model = os.getenv("DEEPSEEK_COMPLETION_MODEL", cls.DEEPSEEK_COMPLETION_MODEL)
+            return f"deepseek/{model}"
+        
+        if os.getenv("OPENAI_API_KEY"):
+            model = os.getenv("OPENAI_MODEL", "gpt-4")
+            return f"openai/{model}"
+        
+        # 3. 使用默认值（最低优先级）
+        return cls.COMPLETION_MODEL
+    
+    @classmethod
+    async def get_embedding_model(cls, user_email: str = None) -> EmbeddingsModel:
+        """
+        获取嵌入模型实例
+        
+        按优先级获取模型：用户配置 > 环境变量 > 默认值
+        
+        Args:
+            user_email: 可选的用户邮箱
+            
+        Returns:
+            EmbeddingsModel: 嵌入模型实例
+        """
+        # 1. 尝试加载用户配置（最高优先级）
+        if user_email:
+            try:
+                user_config = await cls.load_user_config(user_email)
+                if user_config and user_config.embedding_model:
+                    return user_config.get_embedding_model_instance()
+            except Exception as e:
+                logging.warning(f"加载用户配置失败，使用默认配置: {str(e)}")
+        
+        # 2. 尝试从环境变量加载
+        if os.getenv("DEEPSEEK_API_KEY"):
+            model = os.getenv("DEEPSEEK_EMBEDDING_MODEL", cls.DEEPSEEK_EMBEDDING_MODEL)
+            model_name = f"openai/{model}"  # DeepSeek 暂无嵌入模型，使用 OpenAI
+            return EmbeddingsModel(model_name=model_name)
+        
+        if os.getenv("OPENAI_API_KEY"):
+            model = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-ada-002")
+            return EmbeddingsModel(model_name=f"openai/{model}")
+        
+        # 3. 使用默认值（最低优先级）
+        return cls.EMBEDDING_MODEL
+
+
+class UserConfig:
+    """
+    用户特定的 LLM 配置
+    
+    从 FalkorDB 加载并封装用户的 LLM 配置信息。
+    提供便捷的方法获取模型名称和 LiteLLM 调用参数。
+    """
+    
+    def __init__(self, user_email: str, config_data: Dict[str, Any]):
+        """
+        初始化用户配置
+        
+        Args:
+            user_email: 用户邮箱
+            config_data: 配置数据字典，包含以下字段：
+                - provider: 提供商名称（deepseek, openai, azure）
+                - completion_model: 对话模型名称
+                - embedding_model: 嵌入模型名称
+                - api_key: API Key（已解密）
+                - base_url: 可选的自定义 API 端点
+                - parameters: 可选的额外参数字典
+        """
+        self.user_email = user_email
+        self.provider = config_data.get('provider', 'azure')
+        self.completion_model = config_data.get('completion_model')
+        self.embedding_model = config_data.get('embedding_model')
+        self.api_key = config_data.get('api_key')
+        self.base_url = config_data.get('base_url')
+        self.parameters = config_data.get('parameters', {})
+        
+        logging.debug(f"用户配置初始化: {user_email}, 提供商: {self.provider}")
+    
+    def get_completion_model_name(self) -> str:
+        """
+        获取完整的对话模型名称
+        
+        返回 LiteLLM 格式的模型名称（provider/model-name）。
+        
+        Returns:
+            str: 完整的模型名称，如 "deepseek/deepseek-chat"
+        """
+        return f"{self.provider}/{self.completion_model}"
+    
+    def get_embedding_model_name(self) -> str:
+        """
+        获取完整的嵌入模型名称
+        
+        返回 LiteLLM 格式的模型名称（provider/model-name）。
+        
+        Returns:
+            str: 完整的模型名称，如 "openai/text-embedding-ada-002"
+        """
+        # DeepSeek 暂无嵌入模型，使用 OpenAI
+        if self.provider == 'deepseek':
+            return f"openai/{self.embedding_model}"
+        return f"{self.provider}/{self.embedding_model}"
+    
+    def get_embedding_model_instance(self) -> EmbeddingsModel:
+        """
+        获取嵌入模型实例
+        
+        创建并返回配置好的 EmbeddingsModel 实例。
+        
+        Returns:
+            EmbeddingsModel: 嵌入模型实例
+        """
+        model_name = self.get_embedding_model_name()
+        return EmbeddingsModel(model_name=model_name)
+    
+    def to_litellm_params(self) -> Dict[str, Any]:
+        """
+        转换为 LiteLLM 调用参数
+        
+        将用户配置转换为 LiteLLM completion() 函数所需的参数字典。
+        包含模型名称、API Key、Base URL 和用户自定义参数。
+        
+        Returns:
+            Dict[str, Any]: LiteLLM 参数字典
+            
+        Example:
+            >>> user_config = UserConfig(email, config_data)
+            >>> params = user_config.to_litellm_params()
+            >>> response = completion(**params, messages=[...])
+        """
+        params = {
+            'model': self.get_completion_model_name(),
+        }
+        
+        # 添加 API Key
+        if self.api_key:
+            params['api_key'] = self.api_key
+        
+        # 添加自定义 Base URL
+        if self.base_url:
+            params['api_base'] = self.base_url
+        
+        # 添加用户自定义参数（如 temperature, max_tokens 等）
+        if self.parameters:
+            params.update(self.parameters)
+        
+        return params
+    
+    def __repr__(self) -> str:
+        """
+        返回配置的字符串表示
+        
+        Returns:
+            str: 配置描述字符串
+        """
+        return (
+            f"UserConfig(email={self.user_email}, "
+            f"provider={self.provider}, "
+            f"completion_model={self.completion_model})"
+        )
+
 
     FIND_SYSTEM_PROMPT = """
     You are an expert in analyzing natural language queries into SQL tables descriptions.

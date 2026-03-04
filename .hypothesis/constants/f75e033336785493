@@ -1,0 +1,4 @@
+# file: D:\workspace\2026project\QueryWeaver-main\api\auth\user_management.py
+# hypothesis_version: 6.151.9
+
+['.', '@', 'Authorization', 'FASTAPI_SECRET_KEY', 'Organizations', 'api_token', 'authorization', 'bearer', 'email', 'first_name', 'github', 'google', 'identity', 'last_name', 'name', 'new_identity', 'picture', 'provider', 'provider_user_id', 'user', 'wechat', 'wecom', '无效的认证提供商: %s', '邮箱格式无效: %s']

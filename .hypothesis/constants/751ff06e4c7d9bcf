@@ -1,0 +1,4 @@
+# file: C:\Users\xiaopeng\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\litellm\types\secret_managers\main.py
+# hypothesis_version: 6.151.9
+
+['aws_kms', 'aws_secret_manager', 'azure_key_vault', 'custom', 'cyberark', 'google_kms', 'hashicorp_vault', 'litellm/', 'local', 'read_and_write', 'read_only', 'write_only']

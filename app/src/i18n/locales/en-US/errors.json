@@ -1,0 +1,32 @@
+{
+  "auth": {
+    "notAuthenticated": "Not authenticated. Please sign in to connect to a database.",
+    "accessDenied": "Access denied. You do not have permission to connect to the database.",
+    "sessionExpired": "Session expired. Please sign in again.",
+    "loginFailed": "Login Failed",
+    "logoutFailed": "Logout Failed"
+  },
+  "database": {
+    "invalidUrl": "Invalid database connection URL.",
+    "connectionFailed": "Failed to Connect to Database",
+    "connectionTimeout": "Connection timeout. Please check your network connection.",
+    "queryFailed": "Query Execution Failed",
+    "syntaxError": "SQL syntax error, please check your query",
+    "permissionDenied": "Permission Denied",
+    "tableNotFound": "Table Not Found",
+    "columnNotFound": "Column Not Found"
+  },
+  "network": {
+    "offline": "Network connection lost",
+    "timeout": "Request Timeout",
+    "serverError": "Server error. Please try again later.",
+    "unknownError": "An unknown error occurred"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email format",
+    "invalidFormat": "Invalid format",
+    "tooShort": "Content too short",
+    "tooLong": "Content too long"
+  }
+}

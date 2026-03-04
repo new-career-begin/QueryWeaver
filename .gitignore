@@ -32,3 +32,4 @@ demo_tokens.py
 /playwright/.cache/
 /playwright/.auth/
 e2e/.auth/
+/.hypothesis/

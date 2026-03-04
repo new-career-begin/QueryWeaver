@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Data, FalkorDBCanvas, GraphNode } from '@falkordb/canvas';
 import { ZoomIn, ZoomOut, Locate, X, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ interface SchemaViewerProps {
 }
 
 const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: SchemaViewerProps) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<FalkorDBCanvas>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   const [schemaData, setSchemaData] = useState<SchemaData | null>(null);
@@ -160,7 +162,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
     } catch (error) {
       console.error('Failed to load schema:', error);
       toast({
-        title: 'Failed to Load Schema',
+        title: t('schema.errors.loadFailed'),
         description: error instanceof Error ? error.message : 'Unknown error occurred',
         variant: 'destructive',
       });
@@ -399,7 +401,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Database Schema</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('schema.title')}</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -417,7 +419,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
             size="sm"
             onClick={handleZoomIn}
             className="h-8 w-8 p-0 bg-card border-border text-muted-foreground hover:bg-foreground"
-            title="Zoom In"
+            title={t('schema.controls.zoomIn')}
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -426,7 +428,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
             size="sm"
             onClick={handleZoomOut}
             className="h-8 w-8 p-0 bg-card border-border text-muted-foreground hover:bg-foreground"
-            title="Zoom Out"
+            title={t('schema.controls.zoomOut')}
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -435,7 +437,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
             size="sm"
             onClick={handleCenter}
             className="h-8 w-8 p-0 bg-card border-border text-muted-foreground hover:bg-foreground"
-            title="Center"
+            title={t('schema.controls.center')}
           >
             <Locate className="h-4 w-4" />
           </Button>
@@ -445,7 +447,7 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
         <div className="h-[calc(100%-8rem)] w-full bg-background relative">
           {loading && (
             <div className="flex items-center justify-center h-full">
-              <div className="text-muted-foreground">Loading schema...</div>
+              <div className="text-muted-foreground">{t('schema.loading')}</div>
             </div>
           )}
           {!loading && canvasLoaded && schemaData && schemaData.nodes.length > 0 && (
@@ -454,9 +456,9 @@ const SchemaViewer = ({ isOpen, onClose, onWidthChange, sidebarWidth = 64 }: Sch
           {!loading && (!schemaData || schemaData.nodes.length === 0) && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-muted-foreground">
-                <p>No schema data available</p>
+                <p>{t('schema.noData')}</p>
                 <p className="text-sm mt-2">
-                  {!selectedGraph ? 'Select a database first' : 'This database has no schema data'}
+                  {!selectedGraph ? t('schema.selectDatabase') : t('schema.noSchemaData')}
                 </p>
               </div>
             </div>

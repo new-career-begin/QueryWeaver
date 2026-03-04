@@ -1,0 +1,15 @@
+{
+  "title": "Database Schema",
+  "loading": "Loading schema...",
+  "noData": "No schema data available",
+  "selectDatabase": "Select a database first",
+  "noSchemaData": "This database has no schema data",
+  "controls": {
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "center": "Center"
+  },
+  "errors": {
+    "loadFailed": "Failed to Load Schema"
+  }
+}
