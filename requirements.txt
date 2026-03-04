@@ -8,7 +8,7 @@ uvicorn~=0.40.0
 # AI 和数据库
 litellm~=1.80.9
 falkordb~=1.6.0
-git+https://github.com/FalkorDB/graphiti.git@staging#egg=graphiti-core
+# git+https://github.com/FalkorDB/graphiti.git@staging#egg=graphiti-core
 
 # 数据库驱动
 psycopg2-binary~=2.9.11  # PostgreSQL 和人大金仓数据库

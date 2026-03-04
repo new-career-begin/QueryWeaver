@@ -4,6 +4,40 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
 /**
+ * 内联的基础翻译资源（后备方案）
+ * 
+ * 当远程资源加载失败时使用，确保应用至少能显示基本文本
+ */
+const fallbackResources = {
+  'zh-CN': {
+    common: {
+      loading: '加载中...',
+      error: '出错了',
+      retry: '重试',
+      cancel: '取消',
+      confirm: '确认',
+      save: '保存',
+      delete: '删除',
+      edit: '编辑',
+      close: '关闭',
+    },
+  },
+  'en-US': {
+    common: {
+      loading: 'Loading...',
+      error: 'Error',
+      retry: 'Retry',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      save: 'Save',
+      delete: 'Delete',
+      edit: 'Edit',
+      close: 'Close',
+    },
+  },
+};
+
+/**
  * i18n 配置和初始化
  * 
  * 功能:
@@ -22,6 +56,8 @@ i18n
   .use(LanguageDetector) // 自动检测浏览器语言
   .use(initReactI18next) // 集成 React
   .init({
+    // 内联资源作为后备
+    resources: fallbackResources,
     // 懒加载配置
     backend: {
       // 翻译文件路径模板
@@ -40,7 +76,7 @@ i18n
     fallbackLng: 'zh-CN', // 默认语言为中文
     lng: 'zh-CN', // 初始语言
     // 开发配置
-    debug: import.meta.env.DEV, // 开发模式下启用调试
+    debug: false, // 禁用调试日志，避免控制台噪音
     // 插值配置
     interpolation: {
       escapeValue: false, // React 已经处理 XSS
@@ -54,8 +90,8 @@ i18n
     },
     // 性能优化配置
     react: {
-      // 使用 Suspense 模式
-      useSuspense: true,
+      // 禁用 Suspense 模式，避免加载失败时页面空白
+      useSuspense: false,
       // 绑定 i18n 实例到组件
       bindI18n: 'languageChanged loaded',
       // 绑定 i18n store 到组件
@@ -68,19 +104,9 @@ i18n
     // 加载策略
     load: 'currentOnly', // 只加载当前语言，不加载区域变体
     // 预加载语言
-    preload: ['zh-CN'], // 预加载中文
+    preload: [], // 不预加载，按需加载
     // 命名空间分离
     partialBundledLanguages: true, // 允许部分加载命名空间
-    // 缓存配置
-    cache: {
-      enabled: true, // 启用缓存
-      prefix: 'i18next_res_', // 缓存键前缀
-      expirationTime: 7 * 24 * 60 * 60 * 1000, // 缓存过期时间 (7天)
-      versions: {
-        'zh-CN': 'v1.0',
-        'en-US': 'v1.0',
-      },
-    },
   });
 
 export default i18n;

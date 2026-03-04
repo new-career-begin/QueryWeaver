@@ -231,6 +231,14 @@ def create_app():
                 StaticFiles(directory=os.path.join(dist_path, "img")),
                 name="img"
             )
+        
+        # Mount locales folder for i18n translations
+        if os.path.exists(os.path.join(dist_path, "locales")):
+            app.mount(
+                "/locales",
+                StaticFiles(directory=os.path.join(dist_path, "locales")),
+                name="locales"
+            )
 
         # Serve favicon and other root files
         app.mount("/static", StaticFiles(directory=dist_path), name="static")
@@ -266,6 +274,20 @@ def create_app():
         if os.path.exists(favicon_path):
             return FileResponse(favicon_path, media_type="image/x-icon")
         return JSONResponse({"error": "Favicon not found"}, status_code=404)
+
+    # Handle Chrome DevTools well-known requests
+    @app.get("/.well-known/{path:path}", include_in_schema=False)
+    async def well_known(path: str):
+        """
+        处理 .well-known 路径请求
+        
+        Chrome 开发者工具会请求这些路径，返回 404 而不是 422
+        避免在日志中产生不必要的错误信息
+        """
+        return JSONResponse(
+            {"error": "Not found"},
+            status_code=404
+        )
 
     @app.exception_handler(Exception)
     async def handle_oauth_error(

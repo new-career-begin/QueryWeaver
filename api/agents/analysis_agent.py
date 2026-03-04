@@ -12,7 +12,7 @@ class AnalysisAgent(BaseAgent):
     """Agent for analyzing user queries and generating database analysis."""
 
 
-    def get_analysis(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    async def get_analysis(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         self,
         user_query: str,
         combined_tables: list,
