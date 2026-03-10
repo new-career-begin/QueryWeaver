@@ -1,7 +1,7 @@
 {
   "modal": {
     "title": "Connect to Database",
-    "description": "Connect to a PostgreSQL or MySQL database using a connection URL or manual entry.",
+    "description": "Connect to a PostgreSQL, MySQL, DM Database, or KingbaseES database using a connection URL or manual entry.",
     "privacyPolicy": "Privacy Policy"
   },
   "fields": {
@@ -17,7 +17,9 @@
   },
   "types": {
     "postgresql": "PostgreSQL",
-    "mysql": "MySQL"
+    "mysql": "MySQL",
+    "dm": "DM Database",
+    "kingbase": "KingbaseES"
   },
   "modes": {
     "url": "Connection URL",

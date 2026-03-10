@@ -91,7 +91,11 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
       // Build the connection URL
       let dbUrl = connectionUrl;
       if (connectionMode === 'manual') {
-        const protocol = selectedDatabase === 'mysql' ? 'mysql' : 'postgresql';
+        // 根据数据库类型确定协议
+        const protocol = selectedDatabase === 'mysql' ? 'mysql' 
+                       : selectedDatabase === 'dm' ? 'dm'
+                       : selectedDatabase === 'kingbase' ? 'kingbase'
+                       : 'postgresql';
         const builtUrl = new URL(`${protocol}://${host}:${port}/${database}`);
         builtUrl.username = username;
         builtUrl.password = password;
@@ -276,6 +280,18 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                     {t('database.types.mysql')}
                   </div>
                 </SelectItem>
+                <SelectItem value="dm" className="focus:bg-purple-500/20 focus:text-foreground" data-testid="dm-option">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-green-500 rounded-sm mr-2"></div>
+                    {t('database.types.dm')}
+                  </div>
+                </SelectItem>
+                <SelectItem value="kingbase" className="focus:bg-purple-500/20 focus:text-foreground" data-testid="kingbase-option">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-purple-500 rounded-sm mr-2"></div>
+                    {t('database.types.kingbase')}
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -315,7 +331,13 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                 placeholder={
                   selectedDatabase === 'postgresql'
                     ? 'postgresql://username:password@host:5432/database'
-                    : 'mysql://username:password@host:3306/database'
+                    : selectedDatabase === 'mysql'
+                    ? 'mysql://username:password@host:3306/database'
+                    : selectedDatabase === 'dm'
+                    ? 'dm://username:password@host:5236/database'
+                    : selectedDatabase === 'kingbase'
+                    ? 'kingbase://username:password@host:54321/database'
+                    : 'database://username:password@host:port/database'
                 }
                 value={connectionUrl}
                 onChange={(e) => setConnectionUrl(e.target.value)}
@@ -344,7 +366,13 @@ const DatabaseModal = ({ open, onOpenChange }: DatabaseModalProps) => {
                 <Label htmlFor="port" className="text-sm font-medium">{t('database.fields.port')}</Label>
                 <Input
                   id="port"
-                  placeholder={selectedDatabase === "postgresql" ? "5432" : "3306"}
+                  placeholder={
+                    selectedDatabase === "postgresql" ? "5432" 
+                    : selectedDatabase === "mysql" ? "3306"
+                    : selectedDatabase === "dm" ? "5236"
+                    : selectedDatabase === "kingbase" ? "54321"
+                    : "端口"
+                  }
                   value={port}
                   onChange={(e) => setPort(e.target.value)}
                   className="bg-muted border-border focus-visible:ring-purple-500"

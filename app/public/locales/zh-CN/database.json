@@ -1,7 +1,7 @@
 {
   "modal": {
     "title": "连接到数据库",
-    "description": "使用连接 URL 或手动输入连接到 PostgreSQL 或 MySQL 数据库。",
+    "description": "使用连接 URL 或手动输入连接到 PostgreSQL、MySQL、达梦或人大金仓数据库。",
     "privacyPolicy": "隐私政策"
   },
   "fields": {
@@ -17,7 +17,9 @@
   },
   "types": {
     "postgresql": "PostgreSQL",
-    "mysql": "MySQL"
+    "mysql": "MySQL",
+    "dm": "达梦数据库",
+    "kingbase": "人大金仓"
   },
   "modes": {
     "url": "连接 URL",
